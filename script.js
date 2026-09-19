@@ -69,3 +69,22 @@ function configurarBotaoAB(elementId, estados) {
 
 configurarBotaoAB('btnA', abStates.a);
 configurarBotaoAB('btnB', abStates.b);
+
+// --------------------- TELA CHEIA NO CELULAR DEITADO ---------------------
+// Navegadores mobile só permitem pedir fullscreen logo após um toque do
+// usuário — por isso escutamos o primeiro toque na tela pra disparar isso.
+function estaDeitado() {
+  return window.matchMedia('(orientation: landscape)').matches;
+}
+
+function tentarFullscreen() {
+  if (estaDeitado() && !document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {
+      // alguns navegadores (ex: Safari iOS) não suportam Fullscreen API — sem problema,
+      // o dvh acima já ajuda bastante mesmo sem a tela cheia de verdade.
+    });
+  }
+}
+
+document.addEventListener('touchend', tentarFullscreen, { once: true });
+window.addEventListener('orientationchange', () => setTimeout(tentarFullscreen, 300));
