@@ -1,0 +1,107 @@
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #E95F5F;
+}
+
+/* ===================== CONSOLE =====================
+   Preenche o máximo possível da tela, mantendo a proporção exata
+   da referência (695/390) — sem esse limite, o console ficava
+   travado em 700px e tudo dentro dele (D-pad, A/B) parecia pequeno
+   em telas maiores. */
+.console {
+  position: relative;
+  width: min(100vw, calc(100vh * 695 / 390));
+  height: min(100vh, calc(100vw * 390 / 695));
+}
+
+/* ===================== D-PAD =====================
+   Posicionado por cima da cruz já desenhada no bg.svg.
+   Ajuste left/top/width abaixo até encaixar pixel a pixel
+   sobre o D-pad do seu design. */
+.dpad-wrapper {
+  position: absolute;
+  left: 82.5%;
+  top: 8.46%;
+  width: 18.7%;
+  aspect-ratio: 130 / 133; /* medido direto na referência */
+}
+
+.dpad-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dpad-zone {
+  position: absolute;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  /* descomente pra conferir a área durante o ajuste fino:
+  background: rgba(255,0,0,0.25);
+  */
+}
+.zone-up    { top: 0;    left: 33%; width: 34%; height: 33%; }
+.zone-down  { bottom: 0; left: 33%; width: 34%; height: 33%; }
+.zone-left  { top: 33%;  left: 0;   width: 33%; height: 34%; }
+.zone-right { top: 33%;  right: 0;  width: 33%; height: 34%; }
+
+/* ===================== A / B =====================
+   Mesma lógica: ajuste left/top/width pra encaixar sobre
+   a cápsula A/B já desenhada no bg.svg. */
+/* ===================== A / B — SEÇÃO 1: fundo da cápsula =====================
+   Ajuste left/top/width/aspect-ratio até a cápsula encaixar exatamente
+   sobre o desenho equivalente no seu bg.svg (ou onde você quiser posicioná-la). */
+.ab-bg-wrapper {
+  position: absolute;
+  left: 80.7%;
+  top: 50.5%;
+  width: 21.0%;
+  aspect-ratio: 146 / 105; /* medido direto na referência */
+}
+
+.ab-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 200%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ===================== A / B — SEÇÃO 2: os botões =====================
+   Mesmo bounding box da cápsula acima (medido junto no mesmo recorte). */
+.ab-buttons-wrapper {
+  position: absolute;
+  left: 80.5%;
+  top: 63.1%;
+  width: 21.0%;
+  aspect-ratio: 146 / 105;
+}
+
+.ab-btn {
+  position: absolute;
+  width: 37.7%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  cursor: pointer;
+}
+.btn-a { left: 9.6%;  top: 43.8%; }
+.btn-b { left: 54.8%; top: 5.7%; }

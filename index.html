@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meu Portfólio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="console">
+
+  
+
+    <!-- D-PAD: imagem base + 4 zonas invisíveis de hover exatamente por cima dela -->
+    <div class="dpad-wrapper">
+      <img id="dpadImg" class="dpad-img" src="images/components_ext/dpad/dpad.png" alt="D-pad">
+      <button class="dpad-zone zone-up"    data-dir="up"    type="button" aria-label="Cima"></button>
+      <button class="dpad-zone zone-left"  data-dir="left"  type="button" aria-label="Esquerda"></button>
+      <button class="dpad-zone zone-right" data-dir="right" type="button" aria-label="Direita"></button>
+      <button class="dpad-zone zone-down"  data-dir="down"  type="button" aria-label="Baixo"></button>
+    </div>
+
+    <!-- A / B: duas seções independentes, cada uma com seu próprio posicionamento -->
+
+    <!-- Seção 1: só a cápsula de fundo -->
+    <div class="ab-bg-wrapper">
+      <img class="ab-bg" src="images/components_ext/ab/ab_bg.png" alt="">
+    </div>
+
+    <!-- Seção 2: só os botões A e B -->
+    <div class="ab-buttons-wrapper">
+      <img id="btnB" class="ab-btn btn-b" src="images/components_ext/ab/b_btn.png" alt="Botão B">
+      <img id="btnA" class="ab-btn btn-a" src="images/components_ext/ab/a_btn.png" alt="Botão A">
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
