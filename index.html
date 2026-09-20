@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Meu Portfólio</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -35,7 +35,49 @@
     </div>
 
   </div>
+  
+
+  <!-- =====================================================
+     TELA INICIAL (HOME)
+     Colar DENTRO da <div class="console">, junto com o
+     dpad-wrapper / ab-bg-wrapper / ab-buttons-wrapper que
+     você já tem.
+===================================================== -->
+<div class="screen-wrapper">
+  <img id="homeBase" class="screen-bg"
+       src="images/pages/home/home_page_base.png" alt="Tela inicial">
+
+  <div class="home-content">
+
+    <!-- Foto -->
+    <img class="home-foto"
+         src="images/pages/home/components_int/foto/foto.png" alt="Foto de perfil">
+
+    <!-- Nome / contato / skills -->
+    <div class="home-info">
+      <img class="home-label home-label-name"
+           src="images/pages/home/components_int/name.png" alt="Nome">
+      <img class="home-label home-label-contact" id="contactLabel"
+           src="images/pages/home/components_int/contatct/contact.png" alt="Contato">
+      <img class="home-skills-badge" id="skillsBadge"
+           src="images/pages/home/components_int/skills/skills.png" alt="Skills">
+    </div>
+
+    <!-- Botões: Cursos / Projetos / Formação -->
+    <div class="home-nav">
+      <img class="home-nav-btn" id="btnCursos"
+           src="images/pages/home/components_int/cursos/cursos.png" alt="Cursos">
+      <img class="home-nav-btn" id="btnProjetos"
+           src="images/pages/home/components_int/projetos/projetos.png" alt="Projetos">
+      <img class="home-nav-btn" id="btnFormacao"
+           src="images/pages/home/components_int/formacao/formacao.png" alt="Formação">
+    </div>
+
+  </div>
+</div>
 
   <script src="script.js"></script>
 </body>
+
+
 </html>

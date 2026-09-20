@@ -70,6 +70,46 @@ function configurarBotaoAB(elementId, estados) {
 configurarBotaoAB('btnA', abStates.a);
 configurarBotaoAB('btnB', abStates.b);
 
+// --------------------- TECLADO: D-PAD (setas) + A/B (Z e X) ---------------------
+const teclasDpad = {
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+};
+
+const teclasAB = {
+  z: { elementId: 'btnA', estados: abStates.a },
+  x: { elementId: 'btnB', estados: abStates.b },
+};
+
+document.addEventListener('keydown', (e) => {
+  const direcao = teclasDpad[e.key];
+  if (direcao) {
+    e.preventDefault(); // evita rolar a página com as setas
+    dpadImg.src = dpadStates[direcao];
+    return;
+  }
+
+  const ab = teclasAB[e.key.toLowerCase()];
+  if (ab) {
+    document.getElementById(ab.elementId).src = ab.estados.select;
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  const direcao = teclasDpad[e.key];
+  if (direcao) {
+    dpadImg.src = dpadStates.default;
+    return;
+  }
+
+  const ab = teclasAB[e.key.toLowerCase()];
+  if (ab) {
+    document.getElementById(ab.elementId).src = ab.estados.normal;
+  }
+});
+
 // --------------------- TELA CHEIA NO CELULAR DEITADO ---------------------
 // Navegadores mobile só permitem pedir fullscreen logo após um toque do
 // usuário — por isso escutamos o primeiro toque na tela pra disparar isso.

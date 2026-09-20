@@ -31,9 +31,9 @@ body {
    sobre o D-pad do seu design. */
 .dpad-wrapper {
   position: absolute;
-  left: 82.5%;
-  top: 8.46%;
-  width: 18.7%;
+  left:78.5%;
+  top: 2.46%;
+  width: 22.7%;
   aspect-ratio: 130 / 133; /* medido direto na referência */
 }
 
@@ -53,10 +53,17 @@ body {
   border: none;
   padding: 0;
   cursor: pointer;
-  /* descomente pra conferir a área durante o ajuste fino:
+  
+  /*
+  ZONA DE SELEÇÃO DO DPAD (para teste, você pode descomentar a linha abaixo e ver o retângulo vermelho)
+
   background: rgba(255,0,0,0.25);
   */
+
+  outline: none;
 }
+
+
 .zone-up    { top: 0;    left: 33%; width: 34%; height: 33%; }
 .zone-down  { bottom: 0; left: 33%; width: 34%; height: 33%; }
 .zone-left  { top: 33%;  left: 0;   width: 33%; height: 34%; }
@@ -70,9 +77,9 @@ body {
    sobre o desenho equivalente no seu bg.svg (ou onde você quiser posicioná-la). */
 .ab-bg-wrapper {
   position: absolute;
-  left: 80.7%;
+  left: 78.7%;
   top: 50.5%;
-  width: 21.0%;
+  width: 23.0%;
   aspect-ratio: 146 / 105; /* medido direto na referência */
 }
 
@@ -90,9 +97,9 @@ body {
    Mesmo bounding box da cápsula acima (medido junto no mesmo recorte). */
 .ab-buttons-wrapper {
   position: absolute;
-  left: 80.5%;
-  top: 63.1%;
-  width: 21.0%;
+  left: 78.5%;
+  top: 64.3%;
+  width: 23.0%;
   aspect-ratio: 146 / 105;
 }
 
@@ -105,3 +112,206 @@ body {
 }
 .btn-a { left: 9.6%;  top: 43.8%; }
 .btn-b { left: 54.8%; top: 5.7%; }
+
+/* =====================================================
+   TELA INICIAL (HOME)
+   Mesma lógica que você já usa no dpad/ab: wrapper com
+   left/top/width em % relativo ao .console, ajuste fino
+   igual você fez nos outros componentes.
+===================================================== */
+
+/* Área da "tela" onde o home_page_base.png é mostrado.
+   Ajuste left/top/width até encaixar exatamente sobre o
+   vão da tela desenhado no shell do GBA (fundo geral do console). */
+.screen-wrapper {
+  position: absolute;
+  left: 1%;
+  top: 2%;
+  width: 75%;
+  aspect-ratio: 5708 / 4040; /* proporção real do home_page_base.png */
+}
+
+.screen-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Container do conteúdo, posicionado sobre a área clara
+   do home_page_base.png (abaixo do título "MEU PORTFÓLIO") */
+.home-content {
+  position: absolute;
+  left: 4%;
+  top: 20%;
+  width: 92%;
+  height: 58%;
+}
+
+/* ---------- Foto ---------- */
+.home-foto {
+  position: absolute;
+  left: -1.9%;
+  top: 11%;
+  width: 33%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+
+   z-index: 2;
+}
+
+/* ---------- Nome / contato / skills ---------- */
+.home-info {
+  position: absolute;
+  left: 26%;
+  top: 15%;
+  width: 55%;
+}
+
+#skillsBadge {
+  position: absolute;
+  left: -4%;   /* ajusta até a posição que quiser, relativo ao .home-info */
+  top: 90%;
+  transform: scale(0.70); /* mantém o scale que você já tinha, se quiser */
+}
+
+
+.home-label {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+  margin-bottom: 4%;
+  pointer-events: none;
+  user-select: none;
+}
+
+.home-skills-badge {
+  width: 45%;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+/* ---------- Botões: Cursos / Projetos / Formação ----------
+   Cada botão tem sua própria posição, ajuste left/top/width
+   de cada um até encaixar no lugar certo. */
+.home-nav {
+  position: absolute;
+  inset: 0; /* só serve de referência, os botões se posicionam sozinhos */
+}
+
+.home-nav-btn {
+  position: absolute;
+  width: 30%;   /* mesma largura pros três */
+  height: 30%;  /* mesma altura pros três — ajuste até o tamanho que quiser */
+  object-fit: contain; /* a imagem encolhe/cresce dentro da caixa, sem esticar */
+  cursor: pointer;
+}
+
+
+
+#btnCursos {
+  transform: scale(0.88); /* 88% do tamanho atual — ajusta esse número até bater */
+}
+
+#btnProjetos {
+  transform: scale(0.97); /* 88% do tamanho atual — ajusta esse número até bater */
+}
+
+#btnFormacao {
+  transform: scale(0.99); /* 88% do tamanho atual — ajusta esse número até bater */
+}
+
+#btnCursos   { left: 1%;  top: 99%; }
+#btnProjetos { left: 33%; top: 99.50%; }
+#btnFormacao { left: 68%; top: 99.9%; }
+
+/* =====================================================
+   AJUSTES SÓ PRA CELULAR DEITADO
+   Sobrescreve left/top/width só dos elementos que
+   precisam de posição diferente nessa proporção.
+===================================================== */
+@media (pointer: coarse) and (orientation: landscape) {
+
+  /* Tela inicial (moldura + fundo) */
+  .screen-wrapper {
+    left: 5%;
+    top: 2%;
+    width: 63%;
+  }
+
+  
+
+  /* Área com foto + nome/contato/skills + botões */
+  .home-content {
+    left: 4%;
+    top: 20%;
+    width: 92%;
+    height: 58%;
+  }
+
+  /* Foto */
+  .home-foto {
+    left: -1.9%;
+    top: 11%;
+    width: 33%;
+  }
+
+  /* Bloco nome/contato/skills */
+  .home-info {
+    left: 26%;
+    top: 15%;
+    width: 55%;
+  }
+
+  #skillsBadge {
+    left: -4%;
+    top: 90%;
+    transform: scale(0.70);
+  }
+
+  /* Botões Cursos / Projetos / Formação */
+  #btnCursos   { left: 1%;  top: 99%; }
+  #btnProjetos { left: 33%; top: 99%; }
+  #btnFormacao { left: 68%; top: 99%; }
+
+  /* D-pad e A/B */
+  .dpad-wrapper {
+    left: 80%;
+    top: 4%;
+    width: 28%;
+  }
+
+  .ab-buttons-wrapper {
+    left: 78%;
+    top: 60%;
+    width: 28%;
+  }
+  
+    .ab-bg-wrapper {
+    left: 78.2%;
+    top: 42.1%;
+    width: 28.0%;
+  }
+
+  .ab-buttons-wrapper {
+    left: 78%;
+    top: 58.8%;
+  }
+  
+
+ 
+
+  .ab-bg-wrapper,
+.ab-buttons-wrapper {
+  pointer-events: none;
+}
+
+.ab-btn {
+  pointer-events: auto;
+}
+
+}
