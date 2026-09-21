@@ -141,6 +141,13 @@ body {
   user-select: none;
 }
 
+#skillsPage {
+  left: 1%;
+  top: 0.67%;
+  width: 75%;
+  aspect-ratio: 5708 / 4040; /* troque pela proporção real do skill_page.png */
+}
+
 /* Container do conteúdo, posicionado sobre a área clara
    do home_page_base.png (abaixo do título "MEU PORTFÓLIO") */
 .home-content {
@@ -195,6 +202,10 @@ body {
   cursor: pointer;
 }
 
+#skillsBadge.selecionado {
+  transform: translate(0px, 6px) scale(0.60);
+}
+
 /* ---------- Botões: Cursos / Projetos / Formação ----------
    Cada botão tem sua própria posição, ajuste left/top/width
    de cada um até encaixar no lugar certo. */
@@ -226,8 +237,25 @@ body {
 }
 
 #btnCursos   { left: 1%;  top: 99%; }
+
+#btnCursos.selecionado   { transform: translate(-6px, 3px) scale(0.73); }
+#btnProjetos.selecionado { transform: translate(-6px, 3px)  scale(0.87); }
+#btnFormacao.selecionado { transform: translate(-6px, 3px)  scale(0.90); }
+
+
 #btnProjetos { left: 33%; top: 99.50%; }
 #btnFormacao { left: 68%; top: 99.9%; }
+
+
+
+.home-label-name {
+  transform: scale(1.15);       /* aumenta 15%, ajuste esse número */
+  transform-origin: left center; /* cresce pra direita, sem sair do lugar à esquerda */
+}
+
+.screen-wrapper[hidden] {
+  display: none;
+}
 
 /* =====================================================
    AJUSTES SÓ PRA CELULAR DEITADO
