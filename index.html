@@ -10,86 +10,92 @@
 
   <div class="console">
 
-  
+    <!-- =====================================================
+       BLOCO DE CONTROLES: D-pad + A/B (fundo e botões) juntos.
+       Pra mover TUDO isso de uma vez (sem alterar a posição de
+       cada peça entre si), mexa só em .controles-wrapper no CSS —
+       o left/top/width dela desloca o grupo inteiro junto.
+    ===================================================== -->
+    <div class="controles-wrapper">
 
-    <!-- D-PAD: imagem base + 4 zonas invisíveis de hover exatamente por cima dela -->
-    <div class="dpad-wrapper">
-      <img id="dpadImg" class="dpad-img" src="images/components_ext/dpad/dpad.png" alt="D-pad">
-      <button class="dpad-zone zone-up"    data-dir="up"    type="button" aria-label="Cima"></button>
-      <button class="dpad-zone zone-left"  data-dir="left"  type="button" aria-label="Esquerda"></button>
-      <button class="dpad-zone zone-right" data-dir="right" type="button" aria-label="Direita"></button>
-      <button class="dpad-zone zone-down"  data-dir="down"  type="button" aria-label="Baixo"></button>
+      <!-- D-PAD: imagem base + 4 zonas invisíveis de hover exatamente por cima dela -->
+      <div class="dpad-wrapper">
+        <img id="dpadImg" class="dpad-img" src="images/components_ext/dpad/dpad.png" alt="D-pad">
+        <button class="dpad-zone zone-up"    data-dir="up"    type="button" aria-label="Cima"></button>
+        <button class="dpad-zone zone-left"  data-dir="left"  type="button" aria-label="Esquerda"></button>
+        <button class="dpad-zone zone-right" data-dir="right" type="button" aria-label="Direita"></button>
+        <button class="dpad-zone zone-down"  data-dir="down"  type="button" aria-label="Baixo"></button>
+      </div>
+
+      <!-- A / B: duas seções independentes, cada uma com seu próprio posicionamento -->
+
+      <!-- Seção 1: só a cápsula de fundo -->
+      <div class="ab-bg-wrapper">
+        <img class="ab-bg" src="images/components_ext/ab/ab_bg.png" alt="">
+      </div>
+
+      <!-- Seção 2: só os botões A e B -->
+      <div class="ab-buttons-wrapper">
+        <img id="btnB" class="ab-btn btn-b" src="images/components_ext/ab/b_btn.png" alt="Botão B">
+        <img id="btnA" class="ab-btn btn-a" src="images/components_ext/ab/a_btn.png" alt="Botão A">
+      </div>
+
     </div>
 
-    <!-- A / B: duas seções independentes, cada uma com seu próprio posicionamento -->
+    <!-- =====================================================
+       TELA INICIAL (HOME)
+    ===================================================== -->
+    <div class="screen-wrapper" id="homeScreen">
+      <img id="homeBase" class="screen-bg"
+           src="images/pages/home/home_page_base.png" alt="Tela inicial">
 
-    <!-- Seção 1: só a cápsula de fundo -->
-    <div class="ab-bg-wrapper">
-      <img class="ab-bg" src="images/components_ext/ab/ab_bg.png" alt="">
+      <div class="home-content">
+
+        <!-- Foto -->
+        <img class="home-foto"
+             src="images/pages/home/components_int/foto/foto.png" alt="Foto de perfil">
+
+        <!-- Nome / contato / skills -->
+        <div class="home-info">
+          <img class="home-label home-label-name"
+               src="images/pages/home/components_int/name.png" alt="Nome">
+          <img class="home-label home-label-contact" id="contactLabel"
+               src="images/pages/home/components_int/contatct/contact.png" alt="Contato">
+          <img class="home-skills-badge" id="skillsBadge"
+               src="images/pages/home/components_int/skills/skills.png" alt="Skills">
+        </div>
+
+        <!-- Botões: Cursos / Projetos / Formação -->
+        <div class="home-nav">
+          <img class="home-nav-btn" id="btnCursos"
+               src="images/pages/home/components_int/cursos/cursos.png" alt="Cursos">
+          <img class="home-nav-btn" id="btnProjetos"
+               src="images/pages/home/components_int/projetos/projetos.png" alt="Projetos">
+          <img class="home-nav-btn" id="btnFormacao"
+               src="images/pages/home/components_int/formacao/formacao.png" alt="Formação">
+        </div>
+
+      </div>
     </div>
 
-    <!-- Seção 2: só os botões A e B -->
-    <div class="ab-buttons-wrapper">
-      <img id="btnB" class="ab-btn btn-b" src="images/components_ext/ab/b_btn.png" alt="Botão B">
-      <img id="btnA" class="ab-btn btn-a" src="images/components_ext/ab/a_btn.png" alt="Botão A">
+    <!-- =====================================================
+       TELA DE SKILLS
+       O personagem animado (idle) fica dentro dela, numa div
+       própria (.skills-sprite-wrapper) pra você poder controlar
+       posição e tamanho isolado do resto — veja o CSS.
+    ===================================================== -->
+    <div class="screen-wrapper" id="skillsPage" hidden>
+      <img class="screen-bg"
+           src="images/pages/skills/skill_page.png" alt="Skills">
+
+      <div class="skills-sprite-wrapper">
+        <img class="skills-sprite" id="skillsSprite"
+             src="images/pages/skills/animation_pixel/preview.webp" alt="Personagem animado">
+      </div>
     </div>
 
   </div>
-  
-
-  <!-- =====================================================
-     TELA INICIAL (HOME)
-     Colar DENTRO da <div class="console">, junto com o
-     dpad-wrapper / ab-bg-wrapper / ab-buttons-wrapper que
-     você já tem.
-===================================================== -->
-<div class="screen-wrapper"  id="homeScreen">
-  <img id="homeBase" class="screen-bg"
-       src="images/pages/home/home_page_base.png" alt="Tela inicial">
-
-  <div class="home-content">
-
-    <!-- Foto -->
-    <img class="home-foto"
-         src="images/pages/home/components_int/foto/foto.png" alt="Foto de perfil">
-
-    <!-- Nome / contato / skills -->
-    <div class="home-info">
-      <img class="home-label home-label-name"
-           src="images/pages/home/components_int/name.png" alt="Nome">
-      <img class="home-label home-label-contact" id="contactLabel"
-           src="images/pages/home/components_int/contatct/contact.png" alt="Contato">
-      <img class="home-skills-badge" id="skillsBadge"
-           src="images/pages/home/components_int/skills/skills.png" alt="Skills">
-    </div>
-
-    <!-- Botões: Cursos / Projetos / Formação -->
-    <div class="home-nav">
-      <img class="home-nav-btn" id="btnCursos"
-           src="images/pages/home/components_int/cursos/cursos.png" alt="Cursos">
-      <img class="home-nav-btn" id="btnProjetos"
-           src="images/pages/home/components_int/projetos/projetos.png" alt="Projetos">
-      <img class="home-nav-btn" id="btnFormacao"
-           src="images/pages/home/components_int/formacao/formacao.png" alt="Formação">
-    </div>
-
-   
-</div>
-
-
-
-
-  </div>
-
- <div class="screen-wrapper" id="skillsPage" hidden>
-  <img class="screen-bg"
-       src="images/pages/skills/skill_page.png" alt="Skills">
-  </div>
-
-
 
   <script src="script.js"></script>
 </body>
-
-
 </html>

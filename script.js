@@ -23,6 +23,9 @@ const abStates = {
   b: { normal: AB_PATH + 'b_btn.png', select: AB_PATH + 'b_btn_select.png' },
 };
 
+// Sprite animado (idle) da tela de Skills
+const SKILLS_SPRITE_PATH = 'images/pages/skills/animation_pixel/preview.webp';
+
 // --------------------- PRELOAD (evita "flash" na primeira troca) ---------------------
 function precarregar(urls) {
   urls.forEach(src => { const img = new Image(); img.src = src; });
@@ -32,6 +35,7 @@ precarregar([
   ...Object.values(dpadStates),
   abStates.a.normal, abStates.a.select,
   abStates.b.normal, abStates.b.select,
+  SKILLS_SPRITE_PATH,
 ]);
 
 // --------------------- MENU SELECIONÁVEL DA HOME ---------------------
@@ -254,9 +258,12 @@ function posicionarSeta() {
   seta.style.display = 'block';
 }
 
-// Recalcula quando a tela muda de tamanho ou as imagens terminam de carregar
+// Recalcula quando a tela muda de tamanho, orientação, entra/sai da tela
+// cheia, ou as imagens terminam de carregar — mantendo a setinha sempre
+// alinhada com o item selecionado, em qualquer situação.
 window.addEventListener('resize', posicionarSeta);
 window.addEventListener('orientationchange', () => setTimeout(posicionarSeta, 300));
+document.addEventListener('fullscreenchange', () => setTimeout(posicionarSeta, 50));
 window.addEventListener('load', posicionarSeta);
 
 // Pré-carrega as imagens de select e já deixa o primeiro item aceso

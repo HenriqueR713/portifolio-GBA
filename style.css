@@ -15,23 +15,56 @@ body {
 }
 
 /* ===================== CONSOLE =====================
-   Preenche o máximo possível da tela, mantendo a proporção exata
-   da referência (695/390) — sem esse limite, o console ficava
-   travado em 700px e tudo dentro dele (D-pad, A/B) parecia pequeno
-   em telas maiores. */
+   Preenche o máximo possível da tela, sempre mantendo a proporção
+   exata 695:390. Essa fórmula com min()/calc() já garante, sozinha,
+   que a proporção do console (e de tudo que está posicionado em %
+   dentro dele) fica IDÊNTICA em qualquer tela, orientação ou modo
+   tela cheia — não existe mais nenhum "segundo layout" sobrescrevendo
+   essas posições em outro breakpoint (era isso que causava os
+   componentes mudando de lugar).
+
+   O "96" abaixo (em vez de 100) reserva ~4% de margem de segurança
+   nas quatro bordas sempre. Sem isso, quando a proporção da janela
+   muda (ex.: barra de endereço do navegador some ao entrar em tela
+   cheia), o console passa a usar 100% de uma das dimensões (largura
+   OU altura) e 0% de margem nessa direção — foi isso que fazia o
+   D-pad/A-B parecerem "colados" na borda e a tela "descer" de
+   lugar em tela cheia. Com a margem fixa, sempre sobra um respiro
+   em todos os lados, então essa troca de lado fica bem mais suave. */
 .console {
   position: relative;
-  width: min(100vw, calc(100vh * 695 / 390));
-  height: min(100vh, calc(100vw * 390 / 695));
+  width: min(96vw, calc(96vh * 695 / 390));
+  height: min(96vh, calc(96vw * 390 / 695));
+}
+
+/* ===================== BLOCO DE CONTROLES (D-PAD + A/B) =====================
+   Envolve o D-pad e o A/B (fundo + botões) num único bloco. Como ela
+   preenche o console inteiro (inset:0), as % de left/top/width de
+   .dpad-wrapper, .ab-bg-wrapper e .ab-buttons-wrapper continuam
+   significando exatamente a mesma coisa de antes — nada nelas
+   precisa mudar.
+
+   PRA MOVER O GRUPO TODO JUNTO: mexa só no transform abaixo.
+   translate(X%, Y%) desloca tudo — X positivo move pra direita,
+   negativo pra esquerda; Y positivo move pra baixo, negativo pra
+   cima. As % aqui são relativas ao tamanho do próprio bloco
+   (que é do tamanho do console), então funcionam do mesmo jeito
+   em qualquer tela. Ex.: translate(-3%, 1%) move o grupo 3% pra
+   esquerda e 1% pra baixo. */
+.controles-wrapper {
+  position: absolute;
+  inset: 0;
+  transform: translate(-0.3%, 0%);
 }
 
 /* ===================== D-PAD =====================
    Posicionado por cima da cruz já desenhada no bg.svg.
    Ajuste left/top/width abaixo até encaixar pixel a pixel
-   sobre o D-pad do seu design. */
+   sobre o D-pad do seu design. Como é tudo em %, essa posição
+   vale para qualquer tamanho de tela igualmente. */
 .dpad-wrapper {
   position: absolute;
-  left:78.5%;
+  left: 78.5%;
   top: 2.46%;
   width: 22.7%;
   aspect-ratio: 130 / 133; /* medido direto na referência */
@@ -53,7 +86,7 @@ body {
   border: none;
   padding: 0;
   cursor: pointer;
-  
+
   /*
   ZONA DE SELEÇÃO DO DPAD (para teste, você pode descomentar a linha abaixo e ver o retângulo vermelho)
 
@@ -62,7 +95,6 @@ body {
 
   outline: none;
 }
-
 
 .zone-up    { top: 0;    left: 33%; width: 34%; height: 33%; }
 .zone-down  { bottom: 0; left: 33%; width: 34%; height: 33%; }
@@ -125,9 +157,9 @@ body {
    vão da tela desenhado no shell do GBA (fundo geral do console). */
 .screen-wrapper {
   position: absolute;
-  left: 1%;
-  top: 2%;
-  width: 75%;
+  left: -1%;
+  top:0.5%;
+  width: 78%;
   aspect-ratio: 5708 / 4040; /* proporção real do home_page_base.png */
 }
 
@@ -142,9 +174,9 @@ body {
 }
 
 #skillsPage {
-  left: 1%;
-  top: 0.67%;
-  width: 75%;
+  left: -1%;
+  top: 0.5%;
+  width: 78%;
   aspect-ratio: 5708 / 4040; /* troque pela proporção real do skill_page.png */
 }
 
@@ -168,7 +200,7 @@ body {
   pointer-events: none;
   user-select: none;
 
-   z-index: 2;
+  z-index: 2;
 }
 
 /* ---------- Nome / contato / skills ---------- */
@@ -185,7 +217,6 @@ body {
   top: 90%;
   transform: scale(0.70); /* mantém o scale que você já tinha, se quiser */
 }
-
 
 .home-label {
   display: block;
@@ -212,6 +243,7 @@ body {
 .home-nav {
   position: absolute;
   inset: 0; /* só serve de referência, os botões se posicionam sozinhos */
+  transform: translate(0%, 4%);
 }
 
 .home-nav-btn {
@@ -222,34 +254,29 @@ body {
   cursor: pointer;
 }
 
-
-
 #btnCursos {
-  transform: scale(0.88); /* 88% do tamanho atual — ajusta esse número até bater */
+  transform: scale(0.84); /* 88% do tamanho atual — ajusta esse número até bater */
 }
 
 #btnProjetos {
-  transform: scale(0.97); /* 88% do tamanho atual — ajusta esse número até bater */
+  transform: scale(0.97); /* 97% do tamanho atual — ajusta esse número até bater */
 }
 
 #btnFormacao {
-  transform: scale(0.99); /* 88% do tamanho atual — ajusta esse número até bater */
+  transform: scale(1.08); /* 99% do tamanho atual — ajusta esse número até bater */
 }
 
 #btnCursos   { left: 1%;  top: 99%; }
 
 #btnCursos.selecionado   { transform: translate(-6px, 3px) scale(0.73); }
-#btnProjetos.selecionado { transform: translate(-6px, 3px)  scale(0.87); }
-#btnFormacao.selecionado { transform: translate(-6px, 3px)  scale(0.90); }
-
+#btnProjetos.selecionado { transform: translate(-6px, 3px) scale(0.87); }
+#btnFormacao.selecionado { transform: translate(-6px, 3px) scale(0.90); }
 
 #btnProjetos { left: 33%; top: 99.50%; }
 #btnFormacao { left: 68%; top: 99.9%; }
 
-
-
 .home-label-name {
-  transform: scale(1.15);       /* aumenta 15%, ajuste esse número */
+  transform: scale(1.15);        /* aumenta 15%, ajuste esse número */
   transform-origin: left center; /* cresce pra direita, sem sair do lugar à esquerda */
 }
 
@@ -258,88 +285,43 @@ body {
 }
 
 /* =====================================================
-   AJUSTES SÓ PRA CELULAR DEITADO
-   Sobrescreve left/top/width só dos elementos que
-   precisam de posição diferente nessa proporção.
+   TELA DE SKILLS — PERSONAGEM ANIMADO (idle)
+   Wrapper isolado, posicionado em % relativo à .screen-wrapper
+   (#skillsPage), igual à lógica usada em .home-foto etc.
+
+   PRA MOVER: mexa em left/top.
+   PRA REDIMENSIONAR: mexa em width (a altura acompanha sozinha,
+   porque a imagem usa object-fit: contain e mantém a proporção
+   238x219 do sprite).
 ===================================================== */
-@media (pointer: coarse) and (orientation: landscape) {
+.skills-sprite-wrapper {
+  position: absolute;
+  left: 2%;   /* ajuste a posição horizontal aqui */
+  top: 28%;    /* ajuste a posição vertical aqui */
+  width: 35%;  /* ajuste o tamanho aqui — a altura acompanha sozinha */
+  aspect-ratio: 238 / 219; /* proporção real do preview.webp, não mexer */
+  z-index: 3;
+}
 
-  /* Tela inicial (moldura + fundo) */
-  .screen-wrapper {
-    left: 5%;
-    top: 2%;
-    width: 63%;
-  }
-
-  
-
-  /* Área com foto + nome/contato/skills + botões */
-  .home-content {
-    left: 4%;
-    top: 20%;
-    width: 92%;
-    height: 58%;
-  }
-
-  /* Foto */
-  .home-foto {
-    left: -1.9%;
-    top: 11%;
-    width: 33%;
-  }
-
-  /* Bloco nome/contato/skills */
-  .home-info {
-    left: 26%;
-    top: 15%;
-    width: 55%;
-  }
-
-  #skillsBadge {
-    left: -4%;
-    top: 90%;
-    transform: scale(0.70);
-  }
-
-  /* Botões Cursos / Projetos / Formação */
-  #btnCursos   { left: 1%;  top: 99%; }
-  #btnProjetos { left: 33%; top: 99%; }
-  #btnFormacao { left: 68%; top: 99%; }
-
-  /* D-pad e A/B */
-  .dpad-wrapper {
-    left: 80%;
-    top: 4%;
-    width: 28%;
-  }
-
-  .ab-buttons-wrapper {
-    left: 78%;
-    top: 60%;
-    width: 28%;
-  }
-  
-    .ab-bg-wrapper {
-    left: 78.2%;
-    top: 42.1%;
-    width: 28.0%;
-  }
-
-  .ab-buttons-wrapper {
-    left: 78%;
-    top: 58.8%;
-  }
-  
-
- 
-
-  .ab-bg-wrapper,
-.ab-buttons-wrapper {
+.skills-sprite {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated; /* mantém os pixels nítidos ao escalar */
   pointer-events: none;
+  user-select: none;
 }
 
-.ab-btn {
-  pointer-events: auto;
-}
-
-}
+/* NOTA: aqui existia um bloco
+   "@media (pointer: coarse) and (orientation: landscape)" que
+   redefinia left/top/width de .screen-wrapper, .dpad-wrapper,
+   .ab-bg-wrapper, .ab-buttons-wrapper e dos botões de navegação
+   com valores DIFERENTES dos definidos acima. Como o .console já
+   trava sozinho a proporção 695:390 em qualquer tela (inclusive
+   em tela cheia), esse segundo conjunto de posições era
+   justamente o que fazia tudo "pular" de lugar ao deitar o
+   celular / entrar em tela cheia. Foi removido: agora existe uma
+   única fonte de verdade para a posição de cada componente,
+   válida para qualquer tipo de tela. */
