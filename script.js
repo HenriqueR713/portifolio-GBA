@@ -5,12 +5,20 @@
   cada uma com posição própria no CSS. O JS mostra só a do curso ativo
   (classe ".oculto" nas outras) — nunca 2 visíveis ao mesmo tempo.
   Ordem fixa: rockseat -> IFPE -> cocacola.
+
+  ALTERAÇÃO: o título do curso ativo agora sempre usa a imagem "hover"
+  (titulo_hover.png) assim que ele é selecionado pelo d-pad, simulando
+  o estado de "selecionado" sem precisar passar o mouse ou clicar.
+  Isso deixa o botão pronto para receber uma ação futura (ex: no A).
   ===========================================================================
 */
 
 // --------------------- CAMINHOS DOS ASSETS ---------------------
 const DPAD_PATH = 'images/components_ext/dpad/';
 const AB_PATH   = 'images/components_ext/ab/';
+const BG_PATH   = 'images/background/';
+
+const TELA_PRETA = BG_PATH + 'tela_preta.png';
 
 const dpadStates = {
   default: DPAD_PATH + 'dpad.png',
@@ -37,6 +45,7 @@ precarregar([
   abStates.a.normal, abStates.a.select,
   abStates.b.normal, abStates.b.select,
   SKILLS_SPRITE_PATH,
+  TELA_PRETA,
 ]);
 
 // --------------------- MENU SELECIONÁVEL DA HOME ---------------------
@@ -80,46 +89,27 @@ function selecionar(id) {
 }
 
 // --------------------- TELAS ---------------------
-const telaHome   = document.getElementById('homeScreen');
-const telaSkills = document.getElementById('skillsPage');
-const telaCursos = document.getElementById('cursosPage');
+const telaHome     = document.getElementById('homeScreen');
+const telaSkills   = document.getElementById('skillsPage');
+const telaCursos   = document.getElementById('cursosPage');
+const telaCheia    = document.getElementById('telaCheiaPage');
+const telaCheiaImg = document.getElementById('telaCheiaImg');
+const telaFlash    = document.getElementById('telaFlash');
+const telaFlashImg = document.getElementById('telaFlashImg');
 let telaAtual = 'home';
-
-// --------------------- TRANSIÇÃO EM PIXEL ---------------------
-const TRANS_COLS   = 30;
-const TRANS_ROWS   = 20;
-const TRANS_PASSOS = 12;
-const TRANS_MS     = 30;
 
 let transicionando = false;
 
-function montarClip(w, h, progresso, reverso) {
-  const bw = w / TRANS_COLS;
-  const bh = h / TRANS_ROWS;
-  const maxD = Math.hypot(TRANS_COLS / 2, (TRANS_ROWS / 2) * (TRANS_COLS / TRANS_ROWS));
-
-  const revelado = (c, r) => {
-    const dx = c + 0.5 - TRANS_COLS / 2;
-    const dy = (r + 0.5 - TRANS_ROWS / 2) * (TRANS_COLS / TRANS_ROWS);
-    let t = Math.hypot(dx, dy) / maxD;
-    if (reverso) t = 1 - t;
-    return t < progresso * 1.02;
-  };
-
-  let d = '';
-  for (let r = 0; r < TRANS_ROWS; r++) {
-    let c = 0;
-    while (c < TRANS_COLS) {
-      if (!revelado(c, r)) { c++; continue; }
-      const ini = c;
-      while (c < TRANS_COLS && revelado(c, r)) c++;
-      const x1 = Math.floor(ini * bw), y1 = Math.floor(r * bh);
-      const x2 = Math.ceil(c * bw) + 1, y2 = Math.ceil((r + 1) * bh) + 1;
-      d += `M${x1} ${y1}H${x2}V${y2}H${x1}Z`;
-    }
-  }
-  return d ? `path('${d}')` : 'inset(100%)';
-}
+// --------------------- FADE ATÉ PRETO (transição entre telas, estilo Game Boy) ---------------------
+// Ao trocar de tela: escurece em DEGRAUS (não é um fade liso — usa steps(),
+// o mesmo efeito "8-bit" já usado nas outras animações do site) até ficar
+// 100% preto, segura um instante nesse preto, troca as telas por baixo
+// (já escondido) e então clareia de volta em degraus, revelando a tela
+// de destino já pronta.
+const FADE_ESCURECER_MS = 260; // tempo pra escurecer totalmente
+const FADE_PRETO_MS     = 90;  // tempo que fica 100% preto antes de trocar
+const FADE_CLAREAR_MS   = 260; // tempo pra clarear de volta, revelando a tela nova
+const FADE_DEGRAUS      = 6;   // quantidade de "degraus" da transição — mais alto = mais suave, mais baixo = mais "picado"
 
 function trocarTela(de, para, reverso, aoTerminar) {
   if (!de || !para) {
@@ -127,42 +117,43 @@ function trocarTela(de, para, reverso, aoTerminar) {
     return;
   }
 
-  if (!CSS.supports('clip-path', "path('M0 0Z')")) {
+  transicionando = true;
+
+  telaFlashImg.src = TELA_PRETA;
+  telaFlash.hidden = false;
+  telaFlash.style.transition = 'none';
+  telaFlash.style.opacity = '0';
+  telaFlash.getBoundingClientRect(); // força o navegador a aplicar o opacity 0 antes de animar
+
+  requestAnimationFrame(() => {
+    telaFlash.style.transition = `opacity ${FADE_ESCURECER_MS}ms steps(${FADE_DEGRAUS}, jump-end)`;
+    telaFlash.style.opacity = '1';
+  });
+
+  setTimeout(() => {
+    // aqui a tela já está 100% preta: troca por baixo, ninguém vê o corte
     de.hidden = true;
     para.hidden = false;
-    aoTerminar();
-    return;
-  }
 
-  transicionando = true;
-  para.style.clipPath = 'inset(100%)';
-  para.style.zIndex = '2';
-  de.style.zIndex = '1';
-  para.hidden = false;
+    setTimeout(() => {
+      telaFlash.style.transition = `opacity ${FADE_CLAREAR_MS}ms steps(${FADE_DEGRAUS}, jump-end)`;
+      telaFlash.style.opacity = '0';
 
-  const { width, height } = para.getBoundingClientRect();
-  let quadro = 0;
-
-  const id = setInterval(() => {
-    quadro++;
-    para.style.clipPath = montarClip(width, height, quadro / TRANS_PASSOS, reverso);
-
-    if (quadro >= TRANS_PASSOS) {
-      clearInterval(id);
-      de.hidden = true;
-      para.style.clipPath = '';
-      para.style.zIndex = '';
-      de.style.zIndex = '';
-      transicionando = false;
-      aoTerminar();
-    }
-  }, TRANS_MS);
+      setTimeout(() => {
+        telaFlash.style.transition = 'none';
+        telaFlash.hidden = true;
+        transicionando = false;
+        aoTerminar();
+      }, FADE_CLAREAR_MS);
+    }, FADE_PRETO_MS);
+  }, FADE_ESCURECER_MS);
 }
 
 function telaDe(nome) {
   if (nome === 'home') return telaHome;
   if (nome === 'skills') return telaSkills;
   if (nome === 'cursos') return telaCursos;
+  if (nome === 'telaCheia') return telaCheia;
   return null;
 }
 
@@ -170,7 +161,10 @@ function abrirSubTela(nome) {
   if (transicionando) return;
   trocarTela(telaHome, telaDe(nome), false, () => {
     telaAtual = nome;
-    if (nome === 'cursos') atualizarCurso();
+    if (nome === 'cursos') {
+      cursoFoco = 'lista'; // sempre entra na tela de cursos com o título na cor base
+      atualizarCurso();
+    }
   });
 }
 
@@ -184,12 +178,19 @@ function acaoA() {
     if (selecionado === 'skills') abrirSubTela('skills');
     if (selecionado === 'cursos') abrirSubTela('cursos');
   } else if (telaAtual === 'cursos') {
-    acionarExpandir();
+    if (cursoFoco === 'expandir') {
+      ativarExpandir(); // aqui entra futuramente a ação real de ampliar a foto do curso
+    }
   }
 }
 
 function acaoB() {
-  if (telaAtual !== 'home') voltarHome();
+  if (telaAtual === 'telaCheia') {
+    if (transicionando) return;
+    trocarTela(telaCheia, telaCursos, true, () => { telaAtual = 'cursos'; });
+  } else if (telaAtual !== 'home') {
+    voltarHome();
+  }
 }
 
 function mover(direcao) {
@@ -198,7 +199,32 @@ function mover(direcao) {
     const proximo = navegacao[selecionado][direcao];
     if (proximo) selecionar(proximo);
   } else if (telaAtual === 'cursos') {
-    if (direcao === 'up' || direcao === 'down') moverCurso(direcao);
+    if (direcao === 'up' || direcao === 'down') {
+      if (cursoFoco === 'lista') {
+        // Na lista, cima/baixo trocam de curso normalmente.
+        moverCurso(direcao);
+      } else if (cursoFoco === 'titulo' && direcao === 'down') {
+        // Do título, descer leva pro botão de ampliar (abaixo da foto).
+        cursoFoco = 'expandir';
+        atualizarCurso();
+      } else if (cursoFoco === 'expandir' && direcao === 'up') {
+        // Do botão de ampliar, subir volta pro título.
+        cursoFoco = 'titulo';
+        atualizarCurso();
+      }
+      // Demais combinações (ex: 'up' no título, 'down' no expandir) não fazem nada:
+      // são as pontas dessa "sessão" separada da lista.
+    } else if (direcao === 'right') {
+      if (cursoFoco === 'lista') {
+        cursoFoco = 'titulo'; // entra no título: some o hover da lista, título fica colorido
+        atualizarCurso();
+      }
+    } else if (direcao === 'left') {
+      if (cursoFoco === 'titulo' || cursoFoco === 'expandir') {
+        cursoFoco = 'lista'; // sai da sessão título/expandir: volta o hover na lista
+        atualizarCurso();
+      }
+    }
   }
 }
 
@@ -275,6 +301,7 @@ selecionar(selecionado);
 // TELA DE CURSOS
 // ===========================================================================
 
+const CURSOS_PATH     = 'images/pages/cursos/';
 const CURSOS_BTN_PATH = 'images/pages/cursos/page_base_components/';
 const CURSOS_INT_PATH = 'images/pages/cursos/components_int/';
 
@@ -291,6 +318,7 @@ const cursosData = {
     texto:        CURSOS_INT_PATH + 'curso_rockseat/texto.png',
     titulo:       CURSOS_INT_PATH + 'curso_rockseat/titulo.png',
     tituloHover:  CURSOS_INT_PATH + 'curso_rockseat/titulo_hover.png',
+    telaCheia:    CURSOS_INT_PATH + 'curso_rockseat/tela_cheia.png',
   },
   IFPE: {
     el:           document.getElementById('itemIFPE'),
@@ -302,6 +330,7 @@ const cursosData = {
     texto:        CURSOS_INT_PATH + 'curso_IFPE/texto.png',
     titulo:       CURSOS_INT_PATH + 'curso_IFPE/titulo.png',
     tituloHover:  CURSOS_INT_PATH + 'curso_IFPE/titulo_hover.png',
+    telaCheia:    CURSOS_INT_PATH + 'curso_IFPE/tela_cheia.png',
   },
   cocacola: {
     el:           document.getElementById('itemCocacola'),
@@ -313,6 +342,7 @@ const cursosData = {
     texto:        CURSOS_INT_PATH + 'curso_cocacola/texto.png',
     titulo:       CURSOS_INT_PATH + 'curso_cocacola/titulo.png',
     tituloHover:  CURSOS_INT_PATH + 'curso_cocacola/titulo_hover.png',
+    telaCheia:    CURSOS_INT_PATH + 'curso_cocacola/tela_cheia.png',
   },
 };
 
@@ -331,24 +361,49 @@ const painelEl = {
 
 let cursoIndex = 0; // começa em rockseat
 
-// Esconde os outros 2 elementos e mostra só o do curso ativo.
-// Cada elemento tem posição própria no CSS — por isso agora é
-// possível ajustar cada nome de curso de forma independente.
-function atualizarCurso() {
+// 'lista'    -> foco está na lista de cursos (esquerda); título fica na cor base.
+// 'titulo'   -> foco entrou no título (via seta direita); título fica colorido (hover).
+// 'expandir' -> foco desceu pro botão de ampliar (via seta baixo, a partir do título);
+//               o botão passa a "piscar", alternando entre os 2 frames dele.
+let cursoFoco = 'lista';
+
+// Aplica no título do painel a imagem correspondente ao foco atual
+// (base quando cursoFoco === 'lista', hover/colorido quando === 'titulo').
+function aplicarEstadoTitulo() {
+  const idAtivo = ORDEM_CURSOS[cursoIndex];
+  const dadosAtivo = cursosData[idAtivo];
+  painelEl.titulo.src = (cursoFoco === 'titulo') ? dadosAtivo.tituloHover : dadosAtivo.titulo;
+}
+
+// Mostra o hover (selectImg) do curso ativo na lista da esquerda —
+// mas só quando o foco está na lista (cursoFoco === 'lista'). Se o
+// foco foi pro título (seta direita), o hover da lista some, como
+// se a seleção tivesse "andado" da lista para o título.
+function atualizarListaCursos() {
   const idAtivo = ORDEM_CURSOS[cursoIndex];
 
   ORDEM_CURSOS.forEach(id => {
     const dados = cursosData[id];
-    if (id === idAtivo) {
+    const estaSelecionadoNaLista = (id === idAtivo) && (cursoFoco === 'lista');
+
+    if (estaSelecionadoNaLista) {
       dados.el.src = dados.selectImg;
       dados.el.classList.remove('oculto');
     } else {
       dados.el.classList.add('oculto');
     }
   });
+}
 
-  const dadosAtivo = cursosData[idAtivo];
-  painelEl.titulo.src       = dadosAtivo.titulo;
+// Atualiza tudo: hover da lista, título (base ou colorido), estado do
+// botão de ampliar (parado ou piscando) e o conteúdo do painel (foto,
+// carga horária, data, status, texto) referentes ao curso ativo.
+function atualizarCurso() {
+  atualizarListaCursos();
+  aplicarEstadoTitulo();
+  aplicarEstadoExpandir();
+
+  const dadosAtivo = cursosData[ORDEM_CURSOS[cursoIndex]];
   painelEl.foto.src         = dadosAtivo.foto;
   painelEl.cargaHoraria.src = dadosAtivo.cargaHoraria;
   painelEl.data.src         = dadosAtivo.data;
@@ -367,38 +422,74 @@ function moverCurso(direcao) {
   }
 }
 
-// Título do painel: hover troca a cor (titulo.png <-> titulo_hover.png)
-painelEl.titulo.addEventListener('mouseenter', () => {
-  painelEl.titulo.src = cursosData[ORDEM_CURSOS[cursoIndex]].tituloHover;
-});
-painelEl.titulo.addEventListener('mouseleave', () => {
-  painelEl.titulo.src = cursosData[ORDEM_CURSOS[cursoIndex]].titulo;
-});
+// --------------------- BOTÃO DE AMPLIAR: pisca e muda de posição quando selecionado ---------------------
+// Só reage ao d-pad/A — nunca ao mouse. Enquanto cursoFoco !== 'expandir'
+// ele fica parado no frame base (EXPANDIR_FRAME_1), na posição "normal"
+// definida em .curso-expandir no CSS. Quando o foco entra nele (seta baixo
+// a partir do título), a classe 'selecionado' é adicionada: isso troca a
+// posição dele (regra .curso-expandir.selecionado no CSS, agora sem
+// transition, então a troca de posição é um corte seco) e liga o piscar
+// contínuo entre EXPANDIR_FRAME_1 e EXPANDIR_FRAME_2, dando a impressão de
+// animado.
+const EXPANDIR_FRAME_1 = CURSOS_PATH + 'expandir.png';
+const EXPANDIR_FRAME_2 = CURSOS_PATH + 'expandir_2.png';
+const EXPANDIR_ANIM_MS = 350; // velocidade da piscada — ajuste se quiser mais rápido/lento
 
-// --------------------- BOTÃO EXPANDIR: frame-swap + "pop" em steps ---------------------
-const EXPANDIR_FRAME_1 = CURSOS_BTN_PATH + 'expandir.png';
-const EXPANDIR_FRAME_2 = CURSOS_BTN_PATH + 'expandir_2.png';
-let expandido = false;
+let expandirAnimTimer = null;
+let expandirFrameAtual = 0;
 
-function acionarExpandir() {
-  expandido = !expandido;
-  painelEl.expandir.src = expandido ? EXPANDIR_FRAME_2 : EXPANDIR_FRAME_1;
-
-  painelEl.expandir.classList.remove('animando');
-  void painelEl.expandir.offsetWidth; // reflow, pra animação tocar de novo em cliques seguidos
-  painelEl.expandir.classList.add('animando');
+function iniciarAnimacaoExpandir() {
+  pararAnimacaoExpandir();
+  expandirFrameAtual = 0;
+  painelEl.expandir.src = EXPANDIR_FRAME_1;
+  painelEl.expandir.classList.add('selecionado'); // ativa a posição "animado" (CSS) — corte seco
+  expandirAnimTimer = setInterval(() => {
+    expandirFrameAtual = expandirFrameAtual === 0 ? 1 : 0;
+    painelEl.expandir.src = expandirFrameAtual === 0 ? EXPANDIR_FRAME_1 : EXPANDIR_FRAME_2;
+  }, EXPANDIR_ANIM_MS);
 }
 
-painelEl.expandir.addEventListener('click', acionarExpandir);
+function pararAnimacaoExpandir() {
+  if (expandirAnimTimer) {
+    clearInterval(expandirAnimTimer);
+    expandirAnimTimer = null;
+  }
+  painelEl.expandir.src = EXPANDIR_FRAME_1; // parado, sempre no frame base
+  painelEl.expandir.classList.remove('selecionado'); // volta pra posição "normal" (CSS) — corte seco
+}
+
+function aplicarEstadoExpandir() {
+  if (cursoFoco === 'expandir') {
+    iniciarAnimacaoExpandir();
+  } else {
+    pararAnimacaoExpandir();
+  }
+}
+
+// Chamada pelo botão A quando o foco está no botão de ampliar.
+// Abre a tela cheia (tela_cheia.png) do curso que está ativo no momento,
+// usando a mesma transição em pixel das outras trocas de tela. O B
+// (acaoB) volta dessa tela cheia direto pra tela de cursos, mantendo
+// o foco em 'expandir' e o curso que já estava selecionado.
+function ativarExpandir() {
+  if (transicionando) return;
+
+  const idAtivo = ORDEM_CURSOS[cursoIndex];
+  telaCheiaImg.src = cursosData[idAtivo].telaCheia;
+
+  trocarTela(telaCursos, telaCheia, false, () => { telaAtual = 'telaCheia'; });
+}
 
 precarregar([
-  CURSOS_BTN_PATH + 'cursos_page.png',
+  CURSOS_PATH + 'cursos_page.png',
+  CURSOS_PATH + 'CLIQUE_B.png',
   EXPANDIR_FRAME_1, EXPANDIR_FRAME_2,
   ...ORDEM_CURSOS.flatMap(id => [
     cursosData[id].selectImg,
     cursosData[id].foto, cursosData[id].cargaHoraria, cursosData[id].data,
     cursosData[id].status, cursosData[id].texto,
     cursosData[id].titulo, cursosData[id].tituloHover,
+    cursosData[id].telaCheia,
   ]),
 ]);
 

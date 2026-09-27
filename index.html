@@ -110,6 +110,27 @@
       </div>
     </div>
 
+    <!-- =====================================================
+       TELA CHEIA DO CURSO
+       Abre quando aperta A com o foco no botão de "expandir",
+       mostrando o tela_cheia.png do curso ativo naquele momento.
+    ===================================================== -->
+    <div class="screen-wrapper" id="telaCheiaPage" hidden>
+      <img class="screen-bg" id="telaCheiaImg" src="" alt="Tela cheia do curso">
+      <img class="tela-cheia-clique-b" id="cliqueB"
+           src="images/pages/cursos/CLIQUE_B.png" alt="Aperte B para voltar">
+    </div>
+
+    <!-- =====================================================
+       PISCADA DE TRANSIÇÃO (efeito Game Boy)
+       Some por cima de tudo por um instante, alternando entre
+       tela_preta e tela_verdeescuro (pasta images/background),
+       toda vez que troca de tela — antes da transição pixelada.
+    ===================================================== -->
+    <div class="screen-wrapper tela-flash" id="telaFlash" hidden>
+      <img class="screen-bg" id="telaFlashImg" src="" alt="">
+    </div>
+
   </div>
 
   <script src="script.js"></script>

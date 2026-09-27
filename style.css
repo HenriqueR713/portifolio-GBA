@@ -294,7 +294,7 @@ body {
   top: 14%;
   width: 80%;
   object-fit: contain;
-  cursor: pointer;
+  pointer-events: none;
   user-select: none;
   transition: filter 0.1s steps(2, jump-end);
 }
@@ -351,16 +351,39 @@ body {
   user-select: none;
 }
 
-/* ---------- Botão Expandir: efeito pixelado de abrir/fechar ---------- */
+/* ---------- Botão de ampliar: só reage ao d-pad/A, nunca ao mouse ----------
+   pointer-events: none tira qualquer interação por mouse/toque.
+   z-index abaixo do .curso-foto (que é 3) pra ficar por trás da foto.
+
+   Duas posições possíveis, controladas pela classe .selecionado (o JS
+   adiciona/remove ela junto com a animação de piscar):
+   - Bloco de baixo (sem .selecionado):  posição "parado".
+   - Bloco .curso-expandir.selecionado:  posição "animado" (quando o
+     foco do d-pad está nele). Ajuste right/bottom/left/top/width em
+     cada bloco à vontade — só use um par (left+top OU right+bottom)
+     em cada um pra não conflitar.
+
+   ALTERAÇÃO: a "transition" que existia aqui foi removida de propósito.
+   Antes, a troca entre a posição "parado" e "selecionado" era suavizada
+   com steps() (dando um efeito de "andar" em 6 passos). Agora, sem
+   transition, a troca de left/top/right/bottom/width acontece de uma
+   vez só — corte seco, sem nenhum passo intermediário. */
 .curso-expandir {
   position: absolute;
-  right: 0%;
-  bottom: 0%;
-  width: 14%;
+  right: 33%;
+  bottom: 34%;
+  width: 18%;
   object-fit: contain;
-  cursor: pointer;
+  pointer-events: none;
   user-select: none;
   transform-origin: center;
+  z-index: 1;
+}
+
+.curso-expandir.selecionado {
+  right: 29%;
+  bottom: 34%;
+  width: 18%;
 }
 
 .curso-expandir.animando {
@@ -372,4 +395,38 @@ body {
   40%  { transform: scale(1.25); }
   70%  { transform: scale(0.9); }
   100% { transform: scale(1); }
+}
+
+/* =====================================================
+   TELA CHEIA DO CURSO — indicador "CLIQUE_B" piscando
+   Ajuste AQUI a posição (left/top) e o tamanho (width)
+   pra encaixar onde você quiser dentro da tela cheia.
+   A animação faz ele piscar (aparece/some) o tempo todo
+   que a tela cheia estiver aberta — pare/retome mudando
+   CLIQUE_B_PISCAR_MS abaixo se quiser mais rápido/lento.
+===================================================== */
+.tela-cheia-clique-b {
+  position: absolute;
+  left: 50%;                 /* AJUSTE — posição horizontal */
+  top: 88%;                  /* AJUSTE — posição vertical */
+  width: 20%;                /* AJUSTE — tamanho */
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  animation: cliqueBPiscar 700ms steps(1, jump-end) infinite;
+}
+
+@keyframes cliqueBPiscar {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* =====================================================
+   PISCADA DE TRANSIÇÃO (efeito Game Boy)
+   Reaproveita a mesma posição/tamanho de .screen-wrapper,
+   só ficando por cima de todo mundo (z-index alto) enquanto
+   está piscando entre tela_preta e tela_verdeescuro.
+===================================================== */
+.tela-flash {
+  z-index: 10;
 }
