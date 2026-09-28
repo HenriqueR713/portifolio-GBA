@@ -169,7 +169,7 @@ body {
 }
 
 #skillsBadge.selecionado {
-  transform: translate(0px, 6px) scale(0.60);
+  transform: translate(0px, 10px) scale(0.60);
 }
 
 .home-nav {
@@ -407,9 +407,9 @@ body {
 ===================================================== */
 .tela-cheia-clique-b {
   position: absolute;
-  left: 50%;                 /* AJUSTE — posição horizontal */
-  top: 88%;                  /* AJUSTE — posição vertical */
-  width: 20%;                /* AJUSTE — tamanho */
+  left: 32.5%;                 /* AJUSTE — posição horizontal */
+  top: 92.3%;                  /* AJUSTE — posição vertical */
+  width: 35%;                /* AJUSTE — tamanho */
   object-fit: contain;
   pointer-events: none;
   user-select: none;

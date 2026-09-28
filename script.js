@@ -6,10 +6,10 @@
   (classe ".oculto" nas outras) — nunca 2 visíveis ao mesmo tempo.
   Ordem fixa: rockseat -> IFPE -> cocacola.
 
-  ALTERAÇÃO: o título do curso ativo agora sempre usa a imagem "hover"
-  (titulo_hover.png) assim que ele é selecionado pelo d-pad, simulando
-  o estado de "selecionado" sem precisar passar o mouse ou clicar.
-  Isso deixa o botão pronto para receber uma ação futura (ex: no A).
+  ALTERAÇÃO (setinha da home): em Contact e Skills a setinha agora fica
+  ao LADO DIREITO do botão, apontando para a esquerda, e pula direto
+  (corte seco, sem animação) entre um e outro. Nos botões de baixo (Cursos/Projetos/
+  Formação) ela continua em cima, apontando para baixo.
   ===========================================================================
 */
 
@@ -52,9 +52,14 @@ precarregar([
 const HOME_PATH = 'images/pages/home/components_int/';
 
 const menuItens = {
+  // Name: não tem imagem de hover, então normal e select são a mesma.
+  // (pega o elemento pela classe, então não precisa mexer no HTML)
+  name:     { el: document.querySelector('.home-label-name'),
+              normal: HOME_PATH + 'name.png',
+              select: HOME_PATH + 'name.png' },
   contact:  { el: document.getElementById('contactLabel'),
               normal: HOME_PATH + 'contatct/contact.png',
-              select: HOME_PATH + 'contatct/contact_select.png' },
+              select: HOME_PATH + 'contatct/contact.png' }, // sem hover: mesma imagem do estado normal
   skills:   { el: document.getElementById('skillsBadge'),
               normal: HOME_PATH + 'skills/skills.png',
               select: HOME_PATH + 'skills/skills_select.png' },
@@ -70,7 +75,8 @@ const menuItens = {
 };
 
 const navegacao = {
-  contact:  { down: 'skills' },
+  name:     { down: 'contact' },
+  contact:  { up: 'name', down: 'skills' },
   skills:   { up: 'contact', down: 'cursos' },
   cursos:   { up: 'skills', right: 'projetos' },
   projetos: { up: 'skills', left: 'cursos', right: 'formacao' },
@@ -106,10 +112,10 @@ let transicionando = false;
 // 100% preto, segura um instante nesse preto, troca as telas por baixo
 // (já escondido) e então clareia de volta em degraus, revelando a tela
 // de destino já pronta.
-const FADE_ESCURECER_MS = 260; // tempo pra escurecer totalmente
-const FADE_PRETO_MS     = 90;  // tempo que fica 100% preto antes de trocar
-const FADE_CLAREAR_MS   = 260; // tempo pra clarear de volta, revelando a tela nova
-const FADE_DEGRAUS      = 6;   // quantidade de "degraus" da transição — mais alto = mais suave, mais baixo = mais "picado"
+const FADE_ESCURECER_MS = 130; // tempo pra escurecer totalmente
+const FADE_PRETO_MS     = 50;  // tempo que fica 100% preto antes de trocar
+const FADE_CLAREAR_MS   = 130; // tempo pra clarear de volta, revelando a tela nova
+const FADE_DEGRAUS      = 4;   // quantidade de "degraus" da transição — mais alto = mais suave, mais baixo = mais "picado"
 
 function trocarTela(de, para, reverso, aoTerminar) {
   if (!de || !para) {
@@ -228,8 +234,12 @@ function mover(direcao) {
   }
 }
 
-// --------------------- SETINHA PIXELADA (home) ---------------------
-const SETA_PIXELS = [
+// --------------------- SETINHAS PIXELADAS (home) ---------------------
+// Existem 2 setinhas (mesma arte, girada):
+//  - setaCima : fica EM CIMA do botão, apontando pra baixo (Cursos/Projetos/Formação)
+//  - setaLado : fica À DIREITA do botão, apontando pra esquerda (Contact/Skills)
+// Só uma aparece por vez, conforme "posicaoSeta" abaixo.
+const SETA_BAIXO_PIXELS = [
   '#########',
   '#rrrrrrr#',
   '.#rrrrr#.',
@@ -237,11 +247,38 @@ const SETA_PIXELS = [
   '...#r#...',
   '....#....',
 ];
+const SETA_ESQUERDA_PIXELS = [
+  '....##',
+  '...#r#',
+  '..#rr#',
+  '.#rrr#',
+  '#rrrr#',
+  '.#rrr#',
+  '..#rr#',
+  '...#r#',
+  '....##',
+];
 const SETA_COR_CONTORNO = '#2B2B2B';
 const SETA_COR_MIOLO    = '#E23C3C';
-const SETA_LARGURA      = 3.2;
 
+const SETA_LARGURA   = 3.2;  // largura da setinha de cima (% da largura da tela)
+const SETA_LARGURA_H = 2.2;  // largura da setinha lateral (% da largura da tela)
+const SETA_H_GAP     = 0.3;  // distância MÍNIMA entre a setinha lateral e a imagem, no ponto em que ela chega mais perto (% da largura da tela)
+
+// Onde a setinha fica em cada item: 'direita' (lateral, apontando pra esquerda) ou 'cima'
+const posicaoSeta = {
+  name:     'direita',
+  contact:  'direita',
+  skills:   'direita',
+  cursos:   'cima',
+  projetos: 'cima',
+  formacao: 'cima',
+};
+
+// Ajuste fino por item, em % da largura da tela.
+// x positivo -> direita | y positivo -> desce
 const ajusteSeta = {
+  name:     { x: 0, y: 0 },
   contact:  { x: 0, y: 0 },
   skills:   { x: 0, y: 0 },
   cursos:   { x: 0, y: 0 },
@@ -249,26 +286,40 @@ const ajusteSeta = {
   formacao: { x: 0, y: 0 },
 };
 
-const seta = document.createElement('div');
-Object.assign(seta.style, {
-  position: 'absolute', pointerEvents: 'none', zIndex: '5', display: 'none',
-});
+function criarSeta(pixels) {
+  const el = document.createElement('div');
+  Object.assign(el.style, {
+    position: 'absolute', pointerEvents: 'none', zIndex: '5', display: 'none',
+  });
 
-seta.innerHTML =
-  '<svg viewBox="0 0 9 6" width="100%" height="100%" shape-rendering="crispEdges" style="display:block">' +
-  SETA_PIXELS.map((linha, y) => [...linha].map((ch, x) => {
-    if (ch === '.') return '';
-    const cor = ch === '#' ? SETA_COR_CONTORNO : SETA_COR_MIOLO;
-    return `<rect x="${x}" y="${y}" width="1" height="1" fill="${cor}"/>`;
-  }).join('')).join('') +
-  '</svg>';
+  el.innerHTML =
+    `<svg viewBox="0 0 ${pixels[0].length} ${pixels.length}" width="100%" height="100%" shape-rendering="crispEdges" style="display:block">` +
+    pixels.map((linha, y) => [...linha].map((ch, x) => {
+      if (ch === '.') return '';
+      const cor = ch === '#' ? SETA_COR_CONTORNO : SETA_COR_MIOLO;
+      return `<rect x="${x}" y="${y}" width="1" height="1" fill="${cor}"/>`;
+    }).join('')).join('') +
+    '</svg>';
 
-if (telaHome) telaHome.appendChild(seta);
+  if (telaHome) telaHome.appendChild(el);
+  return el;
+}
 
-seta.animate([
+const setaCima = criarSeta(SETA_BAIXO_PIXELS);
+const setaLado = criarSeta(SETA_ESQUERDA_PIXELS);
+
+// Setinha de cima: balança pra baixo (em direção ao botão)
+setaCima.animate([
   { transform: 'translateY(0)',   offset: 0,   easing: 'steps(1, jump-end)' },
   { transform: 'translateY(45%)', offset: 0.5, easing: 'steps(1, jump-end)' },
   { transform: 'translateY(0)',   offset: 1 },
+], { duration: 700, iterations: Infinity });
+
+// Setinha lateral: balança pra esquerda (em direção ao botão)
+setaLado.animate([
+  { transform: 'translateX(0)',   offset: 0,   easing: 'steps(1, jump-end)' },
+  { transform: 'translateX(-45%)', offset: 0.5, easing: 'steps(1, jump-end)' },
+  { transform: 'translateX(0)',   offset: 1 },
 ], { duration: 700, iterations: Infinity });
 
 function posicionarSeta() {
@@ -277,16 +328,43 @@ function posicionarSeta() {
   const tela = telaHome.getBoundingClientRect();
   if (tela.width === 0) return;
 
+  const modo   = posicaoSeta[selecionado] || 'cima';
+  const lateral = modo === 'direita';
+  const ativa   = lateral ? setaLado : setaCima;
+  const inativa = lateral ? setaCima : setaLado;
+
   const item = menuItens[selecionado].el.getBoundingClientRect();
   const aj   = ajusteSeta[selecionado] || { x: 0, y: 0 };
-  const w    = tela.width * SETA_LARGURA / 100;
-  const h    = w * SETA_PIXELS.length / SETA_PIXELS[0].length;
 
-  seta.style.width  = w + 'px';
-  seta.style.height = h + 'px';
-  seta.style.left   = (item.left - tela.left + item.width / 2 - w / 2 + tela.width * aj.x / 100) + 'px';
-  seta.style.top    = (item.top - tela.top - h * 1.5 + tela.width * aj.y / 100) + 'px';
-  seta.style.display = 'block';
+  let w, h, left, top;
+
+  if (lateral) {
+    // À direita do botão, centralizada na altura dele, apontando pra esquerda
+    w = tela.width * SETA_LARGURA_H / 100;
+    h = w * SETA_ESQUERDA_PIXELS.length / SETA_ESQUERDA_PIXELS[0].length;
+    // w * 0.45 = quanto o balanço (translateX -45%) puxa a setinha pra esquerda;
+    // somando isso, ela nunca entra na imagem, nem no ponto mais próximo do balanço.
+    left = item.right - tela.left + tela.width * SETA_H_GAP / 100 + w * 0.45 + tela.width * aj.x / 100;
+    top  = item.top - tela.top + item.height / 2 - h / 2 + tela.width * aj.y / 100;
+  } else {
+    // Em cima do botão, centralizada na largura dele, apontando pra baixo
+    w = tela.width * SETA_LARGURA / 100;
+    h = w * SETA_BAIXO_PIXELS.length / SETA_BAIXO_PIXELS[0].length;
+    left = item.left - tela.left + item.width / 2 - w / 2 + tela.width * aj.x / 100;
+    top  = item.top - tela.top - h * 1.5 + tela.width * aj.y / 100;
+  }
+
+  // Sem nenhuma transição: a setinha sempre teleporta direto pra posição nova
+  ativa.style.transition = 'none';
+  inativa.style.transition = 'none';
+
+  ativa.style.width  = w + 'px';
+  ativa.style.height = h + 'px';
+  ativa.style.left   = left + 'px';
+  ativa.style.top    = top + 'px';
+  ativa.style.display = 'block';
+  inativa.style.display = 'none';
+
 }
 
 window.addEventListener('resize', posicionarSeta);
@@ -427,10 +505,9 @@ function moverCurso(direcao) {
 // ele fica parado no frame base (EXPANDIR_FRAME_1), na posição "normal"
 // definida em .curso-expandir no CSS. Quando o foco entra nele (seta baixo
 // a partir do título), a classe 'selecionado' é adicionada: isso troca a
-// posição dele (regra .curso-expandir.selecionado no CSS, agora sem
-// transition, então a troca de posição é um corte seco) e liga o piscar
-// contínuo entre EXPANDIR_FRAME_1 e EXPANDIR_FRAME_2, dando a impressão de
-// animado.
+// posição dele (regra .curso-expandir.selecionado no CSS, sem transition,
+// então a troca de posição é um corte seco) e liga o piscar contínuo entre
+// EXPANDIR_FRAME_1 e EXPANDIR_FRAME_2, dando a impressão de animado.
 const EXPANDIR_FRAME_1 = CURSOS_PATH + 'expandir.png';
 const EXPANDIR_FRAME_2 = CURSOS_PATH + 'expandir_2.png';
 const EXPANDIR_ANIM_MS = 350; // velocidade da piscada — ajuste se quiser mais rápido/lento
@@ -468,9 +545,9 @@ function aplicarEstadoExpandir() {
 
 // Chamada pelo botão A quando o foco está no botão de ampliar.
 // Abre a tela cheia (tela_cheia.png) do curso que está ativo no momento,
-// usando a mesma transição em pixel das outras trocas de tela. O B
-// (acaoB) volta dessa tela cheia direto pra tela de cursos, mantendo
-// o foco em 'expandir' e o curso que já estava selecionado.
+// usando a mesma transição das outras trocas de tela. O B (acaoB) volta
+// dessa tela cheia direto pra tela de cursos, mantendo o foco em 'expandir'
+// e o curso que já estava selecionado.
 function ativarExpandir() {
   if (transicionando) return;
 
