@@ -53,6 +53,18 @@
                src="images/pages/home/components_int/contatct/contact.png" alt="Contato">
           <img class="home-skills-badge" id="skillsBadge"
                src="images/pages/home/components_int/skills/skills.png" alt="Skills">
+
+          <!-- Ícones de contato, só aparecem quando aperta A no Contact -->
+          <div class="contato-links" id="contatoLinks" hidden>
+            <img class="contato-link" id="linkWhatsapp"
+                 src="images/pages/home/components_int/contatct/whatsapp.png" alt="WhatsApp">
+            <img class="contato-link" id="linkLinkedin"
+                 src="images/pages/home/components_int/contatct/linkedin.png" alt="LinkedIn">
+            <img class="contato-link" id="linkInstagram"
+                 src="images/pages/home/components_int/contatct/instagram.png" alt="Instagram">
+            <img class="contato-link" id="linkGithub"
+                 src="images/pages/home/components_int/contatct/github.png" alt="GitHub">
+          </div>
         </div>
 
         <div class="home-nav">
@@ -82,8 +94,8 @@
 
     <!-- =====================================================
        TELA DE CURSOS
-       Agora são 3 imagens separadas (uma por curso), cada uma
-       com sua PRÓPRIA posição no CSS (#itemRockseat / #itemIFPE /
+       3 imagens separadas (uma por curso), cada uma com sua
+       PRÓPRIA posição no CSS (#itemRockseat / #itemIFPE /
        #itemCocacola). O JS mostra só a do curso ativo (classe
        ".oculto" nas outras) — nunca 2 visíveis ao mesmo tempo.
        Ordem: rockseat -> IFPE -> cocacola.
@@ -111,6 +123,37 @@
     </div>
 
     <!-- =====================================================
+       TELA DE PROJETOS (NOVO)
+       Mesmo conceito da tela de cursos: 4 imagens de hover
+       separadas (uma por projeto), cada uma com sua PRÓPRIA
+       posição no CSS (#itemDevlink / #itemKuroneko / #itemPetbel /
+       #itemPortfolio). O JS mostra só a do projeto ativo.
+       Painel da direita: foto, skills, data, status, texto e link.
+       Ordem: devlink -> kuroneko -> petbel -> portfolio.
+    ===================================================== -->
+    <div class="screen-wrapper" id="projetosPage" hidden>
+      <img class="screen-bg"
+           src="images/pages/projetos/projetos_page.png" alt="Projetos">
+
+      <div class="projetos-lista">
+        <img class="projeto-item" id="itemDevlink"   src="" alt="DevLink">
+        <img class="projeto-item" id="itemKuroneko"  src="" alt="Kuro Neko">
+        <img class="projeto-item" id="itemPetbel"    src="" alt="Petbel">
+        <img class="projeto-item" id="itemPortfolio" src="" alt="Portfólio profissional">
+      </div>
+
+      <div class="projeto-painel">
+        <img class="projeto-foto"   id="projetoFoto"   src="" alt="Foto do projeto">
+        <img class="projeto-skills" id="projetoSkills" src="" alt="Skills usadas">
+        <img class="projeto-data"   id="projetoData"   src="" alt="Data">
+        <img class="projeto-status" id="projetoStatus" src="" alt="Status">
+        <img class="projeto-texto"  id="projetoTexto"  src="" alt="Descrição do projeto">
+        <img class="projeto-link"   id="projetoLink"
+             src="images/pages/projetos/link.png" alt="Abrir link do projeto">
+      </div>
+    </div>
+
+    <!-- =====================================================
        TELA CHEIA DO CURSO
        Abre quando aperta A com o foco no botão de "expandir",
        mostrando o tela_cheia.png do curso ativo naquele momento.
@@ -123,9 +166,8 @@
 
     <!-- =====================================================
        PISCADA DE TRANSIÇÃO (efeito Game Boy)
-       Some por cima de tudo por um instante, alternando entre
-       tela_preta e tela_verdeescuro (pasta images/background),
-       toda vez que troca de tela — antes da transição pixelada.
+       Fica por cima de tudo por um instante toda vez que
+       troca de tela.
     ===================================================== -->
     <div class="screen-wrapper tela-flash" id="telaFlash" hidden>
       <img class="screen-bg" id="telaFlashImg" src="" alt="">

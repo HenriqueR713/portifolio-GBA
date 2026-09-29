@@ -199,6 +199,60 @@ body {
   transform-origin: left center;
 }
 
+/* Só o contact_select (quando aberto com A).
+   translate(x, y): x positivo -> direita | y positivo -> desce (em px)
+   scale(): 1 = tamanho original, 1.1 = +10%, 0.9 = -10%
+   transform-origin: de onde a imagem cresce/encolhe. */
+#contactLabel.aberto {
+  width: 103.8%; 
+  transform: translate(0px, 0px) scale(1);  /* AJUSTE aqui */
+  transform-origin: left center;
+}
+
+/* ---------- Ícones de contato (whatsapp/linkedin/instagram/github) ----------
+   Só aparecem quando o contact_select está aberto (o JS remove o "hidden").
+   Posições em % do .home-info. Ajuste left/top/width de cada um
+   até encaixar dentro do desenho do contact_select.png. */
+.contato-links {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.contato-links[hidden] {
+  display: none;
+}
+
+.contato-link {
+  position: absolute;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+#linkWhatsapp  { left: 60%;  top: 47%; width: 11%; }  /* AJUSTE */
+#linkLinkedin  { left: 49%; top: 47%; width: 11%; }  /* AJUSTE */
+#linkInstagram { left: 71%; top: 47%; width: 11%; }  /* AJUSTE */
+#linkGithub    { left: 82%; top: 47%; width: 11%; }  /* AJUSTE */
+
+/* ---------- Hover do ícone selecionado pelo d-pad ----------
+   O ícone sobe um pouco e fica balançando pra baixo e pra cima
+   (em degraus, no estilo pixelado da setinha).
+   Valores em % da altura do próprio ícone (negativo = sobe, positivo = desce):
+   - 0% / 100% do keyframe = posição de cima
+   - 50% do keyframe       = posição de baixo do balanço
+   Ajuste à vontade. */
+.contato-link.selecionado {
+  animation: contatoBalanco 700ms steps(1, jump-end) infinite;
+}
+
+@keyframes contatoBalanco {
+  0%   { transform: translateY(-30%); }
+  50%  { transform: translateY(-15%); }
+  100% { transform: translateY(-30%); }
+}
+
 /* ===================== TELA DE SKILLS ===================== */
 .skills-sprite-wrapper {
   position: absolute;
@@ -231,13 +285,12 @@ body {
    A classe .oculto (aplicada via JS) esconde os que não estão
    ativos — nunca existem 2 visíveis ao mesmo tempo. */
 
-   #cursosPage {
+#cursosPage {
   left: -2%;                  /* AJUSTE — posição horizontal da tela inteira */
-  top: -0.2%;                  /* AJUSTE — posição vertical da tela inteira */
+  top: -0.2%;                 /* AJUSTE — posição vertical da tela inteira */
   width: 79%;                 /* AJUSTE — tamanho geral da tela inteira */
   aspect-ratio: 5708 / 4040;  /* troque pela proporção real do cursos_page.png, se souber */
 }
-
 
 .cursos-lista {
   position: absolute;
@@ -363,11 +416,7 @@ body {
      cada bloco à vontade — só use um par (left+top OU right+bottom)
      em cada um pra não conflitar.
 
-   ALTERAÇÃO: a "transition" que existia aqui foi removida de propósito.
-   Antes, a troca entre a posição "parado" e "selecionado" era suavizada
-   com steps() (dando um efeito de "andar" em 6 passos). Agora, sem
-   transition, a troca de left/top/right/bottom/width acontece de uma
-   vez só — corte seco, sem nenhum passo intermediário. */
+   Sem "transition" de propósito: a troca de posição é um corte seco. */
 .curso-expandir {
   position: absolute;
   right: 33%;
@@ -398,18 +447,161 @@ body {
 }
 
 /* =====================================================
+   TELA DE PROJETOS (NOVO)
+   Mesma estrutura da tela de cursos. Os valores abaixo são
+   um PONTO DE PARTIDA copiado de cursos: ajuste left/top/width
+   de cada elemento até encaixar no projetos_page.png.
+===================================================== */
+
+#projetosPage {
+  left: -2%;                  /* AJUSTE — posição horizontal da tela inteira */
+  top: -0.2%;                 /* AJUSTE — posição vertical da tela inteira */
+  width: 79%;                 /* AJUSTE — tamanho geral da tela inteira */
+  aspect-ratio: 5708 / 4040;
+}
+
+/* ---------- Lado esquerdo: 4 imagens de hover, 1 por vez ----------
+   A classe .oculto (aplicada via JS) esconde os que não estão ativos. */
+.projetos-lista {
+  position: absolute;
+  left: 3%;
+  top: 12%;
+  width: 40%;
+  height: 70%;
+  z-index: 2;
+}
+
+.projeto-item {
+  position: absolute;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.projeto-item.oculto {
+  display: none;
+}
+
+/* Ajuste left / top / width de CADA UM separadamente aqui: */
+#itemDevlink {
+  left: -3.5%;
+  top: 5%;
+  width: 68.6%;
+}
+
+#itemKuroneko {
+  left: -3.2%;
+  top: 15%;
+  width: 68.3%;
+}
+
+/* 3º da lista: agora é o portfólio (usa os valores que você tinha ajustado pro slot do petbel) */
+#itemPortfolio {
+  left: -3.2%;
+  top: 30.5%;
+  width: 68.3%;
+}
+
+/* 4º da lista: agora é o petbel (usa os valores que estavam no slot do portfólio) */
+#itemPetbel {
+  left: -3.2%;
+  top: 39.9%;
+  width: 68.3%;
+}
+
+/* ---------- Lado direito: painel do projeto selecionado ----------
+   Elementos únicos e compartilhados — só o src troca em JS. */
+.projeto-painel {
+  position: absolute;
+  left: 45%;
+  top: 8%;
+  width: 52%;
+  height: 84%;
+}
+
+.projeto-foto {
+  position: absolute;
+  left: -29%;
+  top: 11%;
+  width: 87%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  z-index: 3;
+}
+
+.projeto-skills {
+  position: absolute;
+  left: 55%;
+  top: 13%;
+  width: 42%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.projeto-data {
+  position: absolute;
+  left: 54.5%;
+  top: 28%;
+  width: 42%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.projeto-status {
+  position: absolute;
+  left: 54.5%;
+  top: 35%;
+  width: 42%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.projeto-texto {
+  position: absolute;
+  left: -28%;
+  top: 70%;
+  width: 130%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---------- Botão de link: só reage ao d-pad/A, nunca ao mouse ----------
+   Duas posições, controladas pela classe .selecionado (o JS liga/desliga
+   junto com a piscada entre link.png e link_2.png).
+   Sem "transition" de propósito: a troca de posição é um corte seco. */
+.projeto-link {
+  position: absolute;
+  right: 33%;
+  bottom: 34%;
+  width: 18%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  transform-origin: center;
+  z-index: 1;
+}
+
+.projeto-link.selecionado {
+  right: 29%;
+  bottom: 34%;
+  width: 18%;
+}
+
+/* =====================================================
    TELA CHEIA DO CURSO — indicador "CLIQUE_B" piscando
    Ajuste AQUI a posição (left/top) e o tamanho (width)
    pra encaixar onde você quiser dentro da tela cheia.
-   A animação faz ele piscar (aparece/some) o tempo todo
-   que a tela cheia estiver aberta — pare/retome mudando
-   CLIQUE_B_PISCAR_MS abaixo se quiser mais rápido/lento.
 ===================================================== */
 .tela-cheia-clique-b {
   position: absolute;
   left: 32.5%;                 /* AJUSTE — posição horizontal */
   top: 92.3%;                  /* AJUSTE — posição vertical */
-  width: 35%;                /* AJUSTE — tamanho */
+  width: 35%;                  /* AJUSTE — tamanho */
   object-fit: contain;
   pointer-events: none;
   user-select: none;
@@ -424,8 +616,7 @@ body {
 /* =====================================================
    PISCADA DE TRANSIÇÃO (efeito Game Boy)
    Reaproveita a mesma posição/tamanho de .screen-wrapper,
-   só ficando por cima de todo mundo (z-index alto) enquanto
-   está piscando entre tela_preta e tela_verdeescuro.
+   só ficando por cima de todo mundo (z-index alto).
 ===================================================== */
 .tela-flash {
   z-index: 10;

@@ -6,10 +6,14 @@
   (classe ".oculto" nas outras) — nunca 2 visíveis ao mesmo tempo.
   Ordem fixa: rockseat -> IFPE -> cocacola.
 
-  ALTERAÇÃO (setinha da home): em Contact e Skills a setinha agora fica
-  ao LADO DIREITO do botão, apontando para a esquerda, e pula direto
-  (corte seco, sem animação) entre um e outro. Nos botões de baixo (Cursos/Projetos/
-  Formação) ela continua em cima, apontando para baixo.
+  Setinha da home: em Name/Contact/Skills fica ao LADO DIREITO do botão,
+  apontando para a esquerda. Nos botões de baixo (Cursos/Projetos/Formação)
+  fica em cima, apontando para baixo.
+
+  Apertar A no Contact abre o contact_select, esconde a setinha e mostra
+  os ícones de WhatsApp / LinkedIn / Instagram / GitHub.
+  Com o contato aberto, apertar A no ícone selecionado abre o link da rede.
+  Tudo some (e a setinha volta) quando apertar cima/baixo no d-pad.
   ===========================================================================
 */
 
@@ -59,7 +63,8 @@ const menuItens = {
               select: HOME_PATH + 'name.png' },
   contact:  { el: document.getElementById('contactLabel'),
               normal: HOME_PATH + 'contatct/contact.png',
-              select: HOME_PATH + 'contatct/contact.png' }, // sem hover: mesma imagem do estado normal
+              select: HOME_PATH + 'contatct/contact.png', // sem hover: mesma imagem do estado normal
+              aberto: HOME_PATH + 'contatct/contact_select.png' }, // imagem ao apertar A
   skills:   { el: document.getElementById('skillsBadge'),
               normal: HOME_PATH + 'skills/skills.png',
               select: HOME_PATH + 'skills/skills_select.png' },
@@ -84,6 +89,7 @@ const navegacao = {
 };
 
 let selecionado = 'contact';
+let contatoAberto = false; // true enquanto o contact_select estiver aberto
 
 function selecionar(id) {
   menuItens[selecionado].el.src = menuItens[selecionado].normal;
@@ -98,6 +104,7 @@ function selecionar(id) {
 const telaHome     = document.getElementById('homeScreen');
 const telaSkills   = document.getElementById('skillsPage');
 const telaCursos   = document.getElementById('cursosPage');
+const telaProjetos = document.getElementById('projetosPage');
 const telaCheia    = document.getElementById('telaCheiaPage');
 const telaCheiaImg = document.getElementById('telaCheiaImg');
 const telaFlash    = document.getElementById('telaFlash');
@@ -107,15 +114,12 @@ let telaAtual = 'home';
 let transicionando = false;
 
 // --------------------- FADE ATÉ PRETO (transição entre telas, estilo Game Boy) ---------------------
-// Ao trocar de tela: escurece em DEGRAUS (não é um fade liso — usa steps(),
-// o mesmo efeito "8-bit" já usado nas outras animações do site) até ficar
-// 100% preto, segura um instante nesse preto, troca as telas por baixo
-// (já escondido) e então clareia de volta em degraus, revelando a tela
-// de destino já pronta.
+// Escurece em DEGRAUS (steps) até ficar 100% preto, segura um instante,
+// troca as telas por baixo (já escondido) e clareia de volta em degraus.
 const FADE_ESCURECER_MS = 130; // tempo pra escurecer totalmente
 const FADE_PRETO_MS     = 50;  // tempo que fica 100% preto antes de trocar
 const FADE_CLAREAR_MS   = 130; // tempo pra clarear de volta, revelando a tela nova
-const FADE_DEGRAUS      = 4;   // quantidade de "degraus" da transição — mais alto = mais suave, mais baixo = mais "picado"
+const FADE_DEGRAUS      = 4;   // quantidade de "degraus" — mais alto = mais suave, mais baixo = mais "picado"
 
 function trocarTela(de, para, reverso, aoTerminar) {
   if (!de || !para) {
@@ -159,6 +163,7 @@ function telaDe(nome) {
   if (nome === 'home') return telaHome;
   if (nome === 'skills') return telaSkills;
   if (nome === 'cursos') return telaCursos;
+  if (nome === 'projetos') return telaProjetos;
   if (nome === 'telaCheia') return telaCheia;
   return null;
 }
@@ -171,6 +176,10 @@ function abrirSubTela(nome) {
       cursoFoco = 'lista'; // sempre entra na tela de cursos com o título na cor base
       atualizarCurso();
     }
+    if (nome === 'projetos') {
+      projetoFoco = 'lista'; // sempre entra na tela de projetos com o foco na lista
+      atualizarProjeto();
+    }
   });
 }
 
@@ -179,12 +188,123 @@ function voltarHome() {
   trocarTela(telaDe(telaAtual), telaHome, true, () => { telaAtual = 'home'; posicionarSeta(); });
 }
 
+// --------------------- CONTACT: abrir / fechar ---------------------
+// O #skillsBadge é posicionado em % da altura do .home-info, e essa altura
+// depende das imagens name/contact. Se o contact_select tiver altura diferente,
+// o skills se mexia. Por isso congelamos a altura do .home-info em px enquanto
+// o contato está aberto.
+const homeInfoEl = document.querySelector('.home-info');
+
+// container com os ícones de whatsapp / linkedin / instagram / github
+const contatoLinksEl = document.getElementById('contatoLinks');
+
+// Ícones navegáveis com o d-pad (esquerda/direita), NA ORDEM em que
+// aparecem na tela, da esquerda pra direita. Se mudar as posições no CSS,
+// troque a ordem aqui também (e a ordem em CONTATO_URLS, logo abaixo).
+const contatoIcones = [
+  document.getElementById('linkLinkedin'),
+  document.getElementById('linkWhatsapp'),
+  document.getElementById('linkInstagram'),
+  document.getElementById('linkGithub'),
+];
+
+// NOVO: links de cada ícone, NA MESMA ORDEM de contatoIcones acima.
+const CONTATO_URLS = [
+  'https://www.linkedin.com/in/henrique-ramos-de-moura-2448693ba?utm_source=share_via&utm_content=profile&utm_medium=member_android', // LinkedIn
+  'https://wa.me/5581985103175',                                                                                                       // WhatsApp
+  'https://www.instagram.com/hick.dev/',                                                                                               // Instagram
+  'https://github.com/HenriqueR713',                                                                                                   // GitHub
+];
+
+let contatoIndex = 0; // qual ícone está com o hover
+
+// Liga o hover (classe "selecionado") só no ícone ativo, e só com o contato aberto.
+function atualizarIconeContato() {
+  contatoIcones.forEach((el, i) => {
+    el.classList.toggle('selecionado', contatoAberto && i === contatoIndex);
+  });
+}
+
+function moverIconeContato(direcao) {
+  let proximo = contatoIndex;
+  if (direcao === 'right') proximo = Math.min(contatoIcones.length - 1, contatoIndex + 1);
+  if (direcao === 'left')  proximo = Math.max(0, contatoIndex - 1);
+
+  if (proximo !== contatoIndex) {
+    contatoIndex = proximo;
+    atualizarIconeContato();
+  }
+}
+
+// NOVO: abre o link do ícone que está selecionado, em nova aba
+function abrirLinkContato() {
+  const url = CONTATO_URLS[contatoIndex];
+  if (url) window.open(url, '_blank', 'noopener');
+}
+
+function congelarAlturaHomeInfo() {
+  homeInfoEl.style.height = '';                               // mede a altura natural
+  homeInfoEl.style.height = homeInfoEl.offsetHeight + 'px';   // e trava
+}
+
+function liberarAlturaHomeInfo() {
+  homeInfoEl.style.height = '';
+}
+
+window.addEventListener('resize', () => {
+  if (contatoAberto) {
+    // recalcula com o contact normal, senão a medida ficaria errada
+    menuItens.contact.el.src = menuItens.contact.select;
+    congelarAlturaHomeInfo();
+    menuItens.contact.el.src = menuItens.contact.aberto;
+  }
+});
+
+function abrirContato() {
+  if (contatoAberto) return;
+  congelarAlturaHomeInfo(); // ANTES de trocar a imagem
+  contatoAberto = true;
+  menuItens.contact.el.classList.add('aberto'); // permite posicionar/dimensionar só o contact_select via CSS
+  menuItens.contact.el.src = menuItens.contact.aberto;
+  contatoLinksEl.hidden = false; // mostra whatsapp/linkedin/instagram/github
+  contatoIndex = 0;              // sempre começa no primeiro ícone
+  atualizarIconeContato();       // liga o hover nele
+  posicionarSeta(); // some com a setinha
+}
+
+function fecharContato() {
+  if (!contatoAberto) return;
+  contatoAberto = false;
+  menuItens.contact.el.classList.remove('aberto');
+  menuItens.contact.el.src = menuItens.contact.select; // volta ao estado normal
+  contatoLinksEl.hidden = true; // esconde os ícones
+  atualizarIconeContato();      // tira o hover de todos
+  liberarAlturaHomeInfo();
+}
+
 function acaoA() {
   if (telaAtual === 'home') {
+    if (selecionado === 'contact') {
+      // NOVO: se o contato já está aberto, A abre o link do ícone selecionado.
+      // Se ainda está fechado, A abre o contato (como antes).
+      if (contatoAberto) abrirLinkContato();
+      else abrirContato();
+    }
     if (selecionado === 'skills') abrirSubTela('skills');
     if (selecionado === 'cursos') abrirSubTela('cursos');
+    if (selecionado === 'projetos') abrirSubTela('projetos');
+  } else if (telaAtual === 'projetos') {
+    // A no botão de link abre o link do projeto ativo em nova aba
+    if (projetoFoco === 'link') {
+      const link = projetosData[ORDEM_PROJETOS[projetoIndex]].link;
+      if (link) window.open(link, '_blank', 'noopener');
+    }
   } else if (telaAtual === 'cursos') {
-    if (cursoFoco === 'expandir') {
+    if (cursoFoco === 'titulo') {
+      // A no título colorido abre o link do curso ativo em nova aba
+      const link = cursosData[ORDEM_CURSOS[cursoIndex]].link;
+      if (link) window.open(link, '_blank', 'noopener');
+    } else if (cursoFoco === 'expandir') {
       ativarExpandir(); // aqui entra futuramente a ação real de ampliar a foto do curso
     }
   }
@@ -202,8 +322,33 @@ function acaoB() {
 function mover(direcao) {
   if (transicionando) return;
   if (telaAtual === 'home') {
+    if (contatoAberto) {
+      // esquerda/direita navegam entre os ícones das redes sociais
+      if (direcao === 'left' || direcao === 'right') {
+        moverIconeContato(direcao);
+        return;
+      }
+      // cima/baixo saem do contato aberto
+      fecharContato();
+    }
     const proximo = navegacao[selecionado][direcao];
     if (proximo) selecionar(proximo);
+    else posicionarSeta(); // cima/baixo sem destino: garante que a setinha reapareça
+  } else if (telaAtual === 'projetos') {
+    if (direcao === 'up' || direcao === 'down') {
+      // Só troca de projeto enquanto o foco está na lista.
+      if (projetoFoco === 'lista') moverProjeto(direcao);
+    } else if (direcao === 'right') {
+      if (projetoFoco === 'lista') {
+        projetoFoco = 'link'; // entra no botão de link: some o hover da lista, o botão pisca
+        atualizarProjeto();
+      }
+    } else if (direcao === 'left') {
+      if (projetoFoco === 'link') {
+        projetoFoco = 'lista'; // volta pra lista: volta o hover
+        atualizarProjeto();
+      }
+    }
   } else if (telaAtual === 'cursos') {
     if (direcao === 'up' || direcao === 'down') {
       if (cursoFoco === 'lista') {
@@ -218,8 +363,7 @@ function mover(direcao) {
         cursoFoco = 'titulo';
         atualizarCurso();
       }
-      // Demais combinações (ex: 'up' no título, 'down' no expandir) não fazem nada:
-      // são as pontas dessa "sessão" separada da lista.
+      // Demais combinações não fazem nada: são as pontas dessa "sessão" separada da lista.
     } else if (direcao === 'right') {
       if (cursoFoco === 'lista') {
         cursoFoco = 'titulo'; // entra no título: some o hover da lista, título fica colorido
@@ -237,7 +381,7 @@ function mover(direcao) {
 // --------------------- SETINHAS PIXELADAS (home) ---------------------
 // Existem 2 setinhas (mesma arte, girada):
 //  - setaCima : fica EM CIMA do botão, apontando pra baixo (Cursos/Projetos/Formação)
-//  - setaLado : fica À DIREITA do botão, apontando pra esquerda (Contact/Skills)
+//  - setaLado : fica À DIREITA do botão, apontando pra esquerda (Name/Contact/Skills)
 // Só uma aparece por vez, conforme "posicaoSeta" abaixo.
 const SETA_BAIXO_PIXELS = [
   '#########',
@@ -263,7 +407,7 @@ const SETA_COR_MIOLO    = '#E23C3C';
 
 const SETA_LARGURA   = 3.2;  // largura da setinha de cima (% da largura da tela)
 const SETA_LARGURA_H = 2.2;  // largura da setinha lateral (% da largura da tela)
-const SETA_H_GAP     = 0.3;  // distância MÍNIMA entre a setinha lateral e a imagem, no ponto em que ela chega mais perto (% da largura da tela)
+const SETA_H_GAP     = 0.3;  // distância MÍNIMA entre a setinha lateral e a imagem (% da largura da tela)
 
 // Onde a setinha fica em cada item: 'direita' (lateral, apontando pra esquerda) ou 'cima'
 const posicaoSeta = {
@@ -278,8 +422,8 @@ const posicaoSeta = {
 // Ajuste fino por item, em % da largura da tela.
 // x positivo -> direita | y positivo -> desce
 const ajusteSeta = {
-  name:     { x: 0, y: 0 },
-  contact:  { x: 0, y: 0 },
+  name:     { x: -5, y: 0 },
+  contact:  { x: -27, y: 0 },
   skills:   { x: 0, y: 0 },
   cursos:   { x: 0, y: 0 },
   projetos: { x: 0, y: 0 },
@@ -328,6 +472,13 @@ function posicionarSeta() {
   const tela = telaHome.getBoundingClientRect();
   if (tela.width === 0) return;
 
+  // contato aberto -> nenhuma setinha aparece
+  if (contatoAberto && selecionado === 'contact') {
+    setaCima.style.display = 'none';
+    setaLado.style.display = 'none';
+    return;
+  }
+
   const modo   = posicaoSeta[selecionado] || 'cima';
   const lateral = modo === 'direita';
   const ativa   = lateral ? setaLado : setaCima;
@@ -364,7 +515,6 @@ function posicionarSeta() {
   ativa.style.top    = top + 'px';
   ativa.style.display = 'block';
   inativa.style.display = 'none';
-
 }
 
 window.addEventListener('resize', posicionarSeta);
@@ -372,7 +522,17 @@ window.addEventListener('orientationchange', () => setTimeout(posicionarSeta, 30
 document.addEventListener('fullscreenchange', () => setTimeout(posicionarSeta, 50));
 window.addEventListener('load', posicionarSeta);
 
-precarregar(Object.values(menuItens).flatMap(i => [i.normal, i.select]));
+// Preload: inclui a imagem "aberto" (quando existir)
+precarregar(Object.values(menuItens).flatMap(i => [i.normal, i.select, i.aberto].filter(Boolean)));
+
+// Preload dos ícones de contato
+precarregar([
+  HOME_PATH + 'contatct/whatsapp.png',
+  HOME_PATH + 'contatct/linkedin.png',
+  HOME_PATH + 'contatct/instagram.png',
+  HOME_PATH + 'contatct/github.png',
+]);
+
 selecionar(selecionado);
 
 // ===========================================================================
@@ -383,7 +543,7 @@ const CURSOS_PATH     = 'images/pages/cursos/';
 const CURSOS_BTN_PATH = 'images/pages/cursos/page_base_components/';
 const CURSOS_INT_PATH = 'images/pages/cursos/components_int/';
 
-// Cada curso agora tem "el": o elemento HTML próprio dele (#itemRockseat etc),
+// Cada curso tem "el": o elemento HTML próprio dele (#itemRockseat etc),
 // que o CSS posiciona individualmente. O JS só decide qual ficar visível.
 const cursosData = {
   rockseat: {
@@ -397,6 +557,7 @@ const cursosData = {
     titulo:       CURSOS_INT_PATH + 'curso_rockseat/titulo.png',
     tituloHover:  CURSOS_INT_PATH + 'curso_rockseat/titulo_hover.png',
     telaCheia:    CURSOS_INT_PATH + 'curso_rockseat/tela_cheia.png',
+    link:         'https://www.rocketseat.com.br/',
   },
   IFPE: {
     el:           document.getElementById('itemIFPE'),
@@ -409,6 +570,7 @@ const cursosData = {
     titulo:       CURSOS_INT_PATH + 'curso_IFPE/titulo.png',
     tituloHover:  CURSOS_INT_PATH + 'curso_IFPE/titulo_hover.png',
     telaCheia:    CURSOS_INT_PATH + 'curso_IFPE/tela_cheia.png',
+    link:         'https://ifrs.edu.br/',
   },
   cocacola: {
     el:           document.getElementById('itemCocacola'),
@@ -421,6 +583,7 @@ const cursosData = {
     titulo:       CURSOS_INT_PATH + 'curso_cocacola/titulo.png',
     tituloHover:  CURSOS_INT_PATH + 'curso_cocacola/titulo_hover.png',
     telaCheia:    CURSOS_INT_PATH + 'curso_cocacola/tela_cheia.png',
+    link:         'https://www.coca-cola.com/br/pt/offerings/instituto-coca-cola-brasil/coletivo-coca-cola-jovem',
   },
 };
 
@@ -446,17 +609,14 @@ let cursoIndex = 0; // começa em rockseat
 let cursoFoco = 'lista';
 
 // Aplica no título do painel a imagem correspondente ao foco atual
-// (base quando cursoFoco === 'lista', hover/colorido quando === 'titulo').
 function aplicarEstadoTitulo() {
   const idAtivo = ORDEM_CURSOS[cursoIndex];
   const dadosAtivo = cursosData[idAtivo];
   painelEl.titulo.src = (cursoFoco === 'titulo') ? dadosAtivo.tituloHover : dadosAtivo.titulo;
 }
 
-// Mostra o hover (selectImg) do curso ativo na lista da esquerda —
-// mas só quando o foco está na lista (cursoFoco === 'lista'). Se o
-// foco foi pro título (seta direita), o hover da lista some, como
-// se a seleção tivesse "andado" da lista para o título.
+// Mostra o hover (selectImg) do curso ativo na lista da esquerda,
+// mas só quando o foco está na lista.
 function atualizarListaCursos() {
   const idAtivo = ORDEM_CURSOS[cursoIndex];
 
@@ -473,9 +633,7 @@ function atualizarListaCursos() {
   });
 }
 
-// Atualiza tudo: hover da lista, título (base ou colorido), estado do
-// botão de ampliar (parado ou piscando) e o conteúdo do painel (foto,
-// carga horária, data, status, texto) referentes ao curso ativo.
+// Atualiza tudo: hover da lista, título, botão de ampliar e painel do curso ativo.
 function atualizarCurso() {
   atualizarListaCursos();
   aplicarEstadoTitulo();
@@ -501,13 +659,9 @@ function moverCurso(direcao) {
 }
 
 // --------------------- BOTÃO DE AMPLIAR: pisca e muda de posição quando selecionado ---------------------
-// Só reage ao d-pad/A — nunca ao mouse. Enquanto cursoFoco !== 'expandir'
-// ele fica parado no frame base (EXPANDIR_FRAME_1), na posição "normal"
-// definida em .curso-expandir no CSS. Quando o foco entra nele (seta baixo
-// a partir do título), a classe 'selecionado' é adicionada: isso troca a
-// posição dele (regra .curso-expandir.selecionado no CSS, sem transition,
-// então a troca de posição é um corte seco) e liga o piscar contínuo entre
-// EXPANDIR_FRAME_1 e EXPANDIR_FRAME_2, dando a impressão de animado.
+// Só reage ao d-pad/A — nunca ao mouse. Quando o foco entra nele, a classe
+// 'selecionado' troca a posição (corte seco, sem transition) e liga o piscar
+// contínuo entre EXPANDIR_FRAME_1 e EXPANDIR_FRAME_2.
 const EXPANDIR_FRAME_1 = CURSOS_PATH + 'expandir.png';
 const EXPANDIR_FRAME_2 = CURSOS_PATH + 'expandir_2.png';
 const EXPANDIR_ANIM_MS = 350; // velocidade da piscada — ajuste se quiser mais rápido/lento
@@ -544,10 +698,7 @@ function aplicarEstadoExpandir() {
 }
 
 // Chamada pelo botão A quando o foco está no botão de ampliar.
-// Abre a tela cheia (tela_cheia.png) do curso que está ativo no momento,
-// usando a mesma transição das outras trocas de tela. O B (acaoB) volta
-// dessa tela cheia direto pra tela de cursos, mantendo o foco em 'expandir'
-// e o curso que já estava selecionado.
+// Abre a tela cheia do curso ativo. O B volta dela direto pra tela de cursos.
 function ativarExpandir() {
   if (transicionando) return;
 
@@ -572,6 +723,146 @@ precarregar([
 
 // Estado inicial da tela de cursos, já pronto pra quando ela abrir
 atualizarCurso();
+
+// ===========================================================================
+// TELA DE PROJETOS
+// Mesmo conceito da tela de Cursos: cada projeto tem sua imagem de hover
+// própria na lista (esquerda), e o painel (direita) mostra foto, skills,
+// data, status, texto e o botão de link. Não tem título nem tela cheia.
+// ===========================================================================
+
+const PROJETOS_PATH     = 'images/pages/projetos/';
+const PROJETOS_BTN_PATH = 'images/pages/projetos/page_base_components/';
+const PROJETOS_INT_PATH = 'images/pages/projetos/components_int/';
+
+// Função auxiliar: monta o objeto de um projeto a partir da pasta e do hover.
+function criarProjeto(elId, hoverFile, pasta, link) {
+  const base = PROJETOS_INT_PATH + pasta + '/';
+  return {
+    el:        document.getElementById(elId),
+    selectImg: PROJETOS_BTN_PATH + hoverFile,
+    foto:      base + 'foto.png',
+    skills:    base + 'skills.png',
+    data:      base + 'data.png',
+    status:    base + 'status.png',
+    texto:     base + 'texto.png',
+    link:      link, // '' = ainda sem link (o botão A não faz nada)
+  };
+}
+
+const projetosData = {
+  //                      id do elemento   imagem de hover          pasta             link
+  devlink:   criarProjeto('itemDevlink',   'devlink_hover.png',     'devlink',         'https://henriquer713.github.io/Projeto-DevLink-Rockseat/'),
+  kuroneko:  criarProjeto('itemKuroneko',  'kuroneko_hover.png',    'kuro_neko',       'https://henriquer713.github.io/Reformulacao-do-site-Kuro-Neko-Coffee-e-Co./'),
+  portfolio: criarProjeto('itemPortfolio', 'protifolio_hover.png',  'portifolio_prof', 'https://henriquer713.github.io/henriquedev/'),
+  petbel:    criarProjeto('itemPetbel',    'petbel_hover.png',      'petbel',          'https://henriquer713.github.io/Pet-Bel/'),
+};
+
+// Ordem de navegação (cima/baixo): devlink -> kuroneko -> portfolio -> petbel
+const ORDEM_PROJETOS = ['devlink', 'kuroneko', 'portfolio', 'petbel'];
+
+const painelProjEl = {
+  foto:   document.getElementById('projetoFoto'),
+  skills: document.getElementById('projetoSkills'),
+  data:   document.getElementById('projetoData'),
+  status: document.getElementById('projetoStatus'),
+  texto:  document.getElementById('projetoTexto'),
+  link:   document.getElementById('projetoLink'),
+};
+
+let projetoIndex = 0; // começa em devlink
+
+// 'lista' -> foco na lista de projetos (esquerda); mostra o hover do ativo.
+// 'link'  -> foco no botão de link (via seta direita); o botão pisca.
+let projetoFoco = 'lista';
+
+// Hover do projeto ativo na lista, só quando o foco está na lista.
+function atualizarListaProjetos() {
+  const idAtivo = ORDEM_PROJETOS[projetoIndex];
+
+  ORDEM_PROJETOS.forEach(id => {
+    const dados = projetosData[id];
+    const selecionadoNaLista = (id === idAtivo) && (projetoFoco === 'lista');
+
+    if (selecionadoNaLista) {
+      dados.el.src = dados.selectImg;
+      dados.el.classList.remove('oculto');
+    } else {
+      dados.el.classList.add('oculto');
+    }
+  });
+}
+
+function atualizarProjeto() {
+  atualizarListaProjetos();
+  aplicarEstadoLink();
+
+  const dadosAtivo = projetosData[ORDEM_PROJETOS[projetoIndex]];
+  painelProjEl.foto.src   = dadosAtivo.foto;
+  painelProjEl.skills.src = dadosAtivo.skills;
+  painelProjEl.data.src   = dadosAtivo.data;
+  painelProjEl.status.src = dadosAtivo.status;
+  painelProjEl.texto.src  = dadosAtivo.texto;
+}
+
+function moverProjeto(direcao) {
+  let proximo = projetoIndex;
+  if (direcao === 'down') proximo = Math.min(ORDEM_PROJETOS.length - 1, projetoIndex + 1);
+  if (direcao === 'up')   proximo = Math.max(0, projetoIndex - 1);
+
+  if (proximo !== projetoIndex) {
+    projetoIndex = proximo;
+    atualizarProjeto();
+  }
+}
+
+// --------------------- BOTÃO DE LINK: pisca quando selecionado ---------------------
+// Alterna entre link.png e link_2.png. A classe 'selecionado' troca a posição
+// no CSS (corte seco, sem transition).
+const LINK_FRAME_1 = PROJETOS_PATH + 'link.png';
+const LINK_FRAME_2 = PROJETOS_PATH + 'link_2.png';
+const LINK_ANIM_MS = 350; // velocidade da piscada
+
+let linkAnimTimer = null;
+let linkFrameAtual = 0;
+
+function iniciarAnimacaoLink() {
+  pararAnimacaoLink();
+  linkFrameAtual = 0;
+  painelProjEl.link.src = LINK_FRAME_1;
+  painelProjEl.link.classList.add('selecionado');
+  linkAnimTimer = setInterval(() => {
+    linkFrameAtual = linkFrameAtual === 0 ? 1 : 0;
+    painelProjEl.link.src = linkFrameAtual === 0 ? LINK_FRAME_1 : LINK_FRAME_2;
+  }, LINK_ANIM_MS);
+}
+
+function pararAnimacaoLink() {
+  if (linkAnimTimer) {
+    clearInterval(linkAnimTimer);
+    linkAnimTimer = null;
+  }
+  painelProjEl.link.src = LINK_FRAME_1; // parado, sempre no frame base
+  painelProjEl.link.classList.remove('selecionado');
+}
+
+function aplicarEstadoLink() {
+  if (projetoFoco === 'link') iniciarAnimacaoLink();
+  else pararAnimacaoLink();
+}
+
+precarregar([
+  PROJETOS_PATH + 'projetos_page.png',
+  LINK_FRAME_1, LINK_FRAME_2,
+  ...ORDEM_PROJETOS.flatMap(id => [
+    projetosData[id].selectImg,
+    projetosData[id].foto, projetosData[id].skills, projetosData[id].data,
+    projetosData[id].status, projetosData[id].texto,
+  ]),
+]);
+
+// Estado inicial da tela de projetos, já pronto pra quando ela abrir
+atualizarProjeto();
 
 // --------------------- D-PAD ---------------------
 const dpadImg = document.getElementById('dpadImg');
